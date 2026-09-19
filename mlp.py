@@ -9,9 +9,9 @@ import numpy as np
 
 
 class TinyMLP:
-    def __init__(self, hidden=64, rng=None, lr=1e-3):
+    def __init__(self, input_dim=1, hidden=64, rng=None, lr=1e-3):
         rng = rng or np.random.default_rng()
-        self.W1 = rng.normal(scale=1.0, size=(1, hidden))
+        self.W1 = rng.normal(scale=1.0 / np.sqrt(input_dim), size=(input_dim, hidden))
         self.b1 = np.zeros(hidden)
         self.W2 = rng.normal(scale=1.0 / np.sqrt(hidden), size=(hidden, hidden))
         self.b2 = np.zeros(hidden)
@@ -25,7 +25,7 @@ class TinyMLP:
         self._t = 0
 
     def forward(self, x):
-        """x: (N, 1) -> (N, 1), linear output."""
+        """x: (N, input_dim) -> (N, 1), linear output."""
         self._x = x
         self._z1 = x @ self.W1 + self.b1
         self._a1 = np.tanh(self._z1)

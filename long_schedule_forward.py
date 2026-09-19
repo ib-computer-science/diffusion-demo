@@ -11,13 +11,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ddpm_step import cumulative_alpha_bar, marginal_xt_params
+from ddpm_step import marginal_xt_params
 from hue_gmm import gmm_pdf, normal_pdf, x_to_rgb
+from schedule import ALPHA_BARS, BETAS, T
 
 OUT_DIR = "output"
 X_GRID = np.linspace(-1.0, 1.0, 1000)
-T = 100
-BETAS = np.linspace(0.001, 0.08, T)
 STEPS_TO_SHOW = [0, 5, 10, 20, 40, 60, 80, 100]
 
 
@@ -29,7 +28,7 @@ def hue_strip(ax, y0, y1, n=600):
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
-    alpha_bars = cumulative_alpha_bar(BETAS)
+    alpha_bars = ALPHA_BARS
     print("alpha_bar at shown steps:", {t: round(float(alpha_bars[t - 1]), 4) for t in STEPS_TO_SHOW if t > 0})
 
     fig, ax = plt.subplots(figsize=(9, 6))
