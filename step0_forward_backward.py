@@ -18,7 +18,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ddpm_step import marginal_x1_params, posterior_pdf
+from ddpm_step import joint_pdf, marginal_x1_params, posterior_pdf
 from hue_gmm import MEANS, NAMES, gmm_pdf, normal_pdf, x_to_rgb
 
 BETA1 = 0.005
@@ -81,11 +81,10 @@ def main():
 
     # --- panel 4: joint distribution p(x0, x1) ---
     ax = axes[1, 1]
-    a1 = 1.0 - BETA1
     lim = 0.6
     plot_grid = np.linspace(-lim, lim, 400)
     x0_grid, x1_grid = np.meshgrid(plot_grid, plot_grid, indexing="ij")
-    joint = gmm_pdf(x0_grid) * normal_pdf(x1_grid, np.sqrt(a1) * x0_grid, np.sqrt(BETA1))
+    joint = joint_pdf(x0_grid, x1_grid, BETA1)
 
     strip_frac = 0.08
     y0_strip = -lim - strip_frac * 2 * lim

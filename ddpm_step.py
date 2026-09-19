@@ -11,7 +11,7 @@ p(x0) (e.g. over natural images) isn't known analytically like it is here.
 
 import numpy as np
 
-from hue_gmm import MEANS, STDS, WEIGHTS, normal_pdf
+from hue_gmm import MEANS, STDS, WEIGHTS, gmm_pdf, normal_pdf
 
 
 def forward_step(x0, beta1, rng):
@@ -54,6 +54,23 @@ def posterior_pdf(x_grid, v, beta1, weights=WEIGHTS, means=MEANS, stds=STDS):
     resp, post_mean, post_std = posterior_given_x1(v, beta1, weights, means, stds)
     x_grid = np.asarray(x_grid)[..., None]
     return (resp * normal_pdf(x_grid, post_mean, post_std)).sum(-1)
+
+
+def joint_pdf(x0, x1, beta1, weights=WEIGHTS, means=MEANS, stds=STDS):
+    """p(x0, x1) = p(x0) * q(x1 | x0). A horizontal slice at fixed x1=v,
+    renormalized, is exactly posterior_pdf(..., v, beta1)."""
+    a1 = 1.0 - beta1
+    return gmm_pdf(x0, weights, means, stds) * normal_pdf(x1, np.sqrt(a1) * x0, np.sqrt(beta1))
+
+
+def posterior_mean_curve(x1_grid, beta1, weights=WEIGHTS, means=MEANS, stds=STDS):
+    """E[x0 | x1=v] for each v in x1_grid: the density-weighted centroid of
+    each horizontal slice through the joint distribution."""
+    out = np.empty_like(x1_grid, dtype=float)
+    for i, v in enumerate(x1_grid):
+        resp, post_mean, _ = posterior_given_x1(v, beta1, weights, means, stds)
+        out[i] = (resp * post_mean).sum()
+    return out
 
 
 def sample_posterior(v_array, beta1, rng, weights=WEIGHTS, means=MEANS, stds=STDS):
