@@ -28,6 +28,21 @@ def marginal_x1_params(beta1, weights=WEIGHTS, means=MEANS, stds=STDS):
     return weights, means1, stds1
 
 
+def cumulative_alpha_bar(betas):
+    """alpha_bar_t = prod_{i=1}^t (1 - beta_i), for every t in the schedule."""
+    return np.cumprod(1.0 - np.asarray(betas))
+
+
+def marginal_xt_params(alpha_bar_t, weights=WEIGHTS, means=MEANS, stds=STDS):
+    """Params of q(x_t) given alpha_bar_t (the "direct jump" formula): since
+    each step is linear-Gaussian and x0 is a GMM, q(x_t) stays a GMM with
+    the same weights for every t, regardless of whether the betas behind
+    alpha_bar_t are constant or follow an increasing schedule."""
+    means_t = np.sqrt(alpha_bar_t) * means
+    stds_t = np.sqrt(alpha_bar_t * stds**2 + (1.0 - alpha_bar_t))
+    return weights, means_t, stds_t
+
+
 def posterior_given_x1(v, beta1, weights=WEIGHTS, means=MEANS, stds=STDS):
     """Exact q(x0 | x1=v): a mixture of per-component Gaussian posteriors.
 
