@@ -107,22 +107,96 @@ Leaked mass shows up mostly in green, not spread evenly.
    opportunity to drift out of a narrow minor-mode basin than a real
    posterior-variance step would.
 
-**Next steps to isolate which mechanism dominates:**
+**Findings so far, in the order they were established:**
 
-- Retrain with more capacity/iterations (bigger hidden size, more steps)
-  and re-measure the same basin-occupancy table. If the gap shrinks
-  substantially, the issue is mainly a training/capacity limitation. If it
-  persists, it points to something structural (schedule/variance choice).
-- Swap the network's predicted mean into the ancestral sampler but replace
-  its *variance* with the true per-component posterior variance
-  (computable from `ddpm_step.py`) instead of `beta_t`, to isolate whether
-  the fixed-variance simplification alone (independent of network error)
-  causes the leakage.
-- Extend the `learned_curve_on_joint.py`-style diagnostic to the
-  multi-step model: plot the learned vs. exact conditional-mean curve for
-  several fixed `t` values, to see whether the bias near yellow grows or
-  shrinks as `t` increases.
+1. **The fixed-variance sampling scheme is exonerated.** `exact_reverse_multistep.py`
+   reruns the identical 100-step ancestral sampler but replaces the
+   network's prediction with the closed-form, zero-training-error exact
+   conditional mean `E[x0|x_t]` (`ddpm_step.exact_conditional_mean_x0`) at
+   every step, keeping the same fixed `sigma_t^2=beta_t` noise injection.
+   Result: yellow comes out correct (0.129 vs. true 0.120). So candidates
+   #3 (compounding over steps) and #4 (fixed variance) above are **not**
+   the cause — the leakage is entirely attributable to the learned model.
+2. **More training partially helps, but reveals a second, separate bias.**
+   Doubling training iterations (20k -> 40k, same architecture) shrank
+   yellow's shortfall from ~44% low to ~16% low -- real evidence for
+   training/data-imbalance (#1). But red *also* got worse (more
+   underrepresented) while green overshot further, even though the true
+   distribution is symmetric between red and green (both 3/7) -- this
+   asymmetry can't be structural, so at this budget the model still hasn't
+   converged and red/green's split is partly run-to-run noise.
+3. **The multi-t exact-vs-learned curve comparison**
+   (`learned_curve_on_joint_multistep.py`) shows the wiggle-smoothing
+   mechanism (#2) is real but only matters at low-to-moderate `t` (t=1,10
+   track the exact curve closely). By t=30 and beyond, even the *exact*
+   curve stops showing a yellow-specific wiggle -- noise dilutes yellow's
+   thin evidence faster than red's/green's, so there's nothing left to
+   smooth. Instead, a **previously unseen systematic red-vs-green bias**
+   appears in the learned curve at high `t` (t=60, t=100, near-pure noise),
+   pulling toward green. Since reverse sampling starts at t=T and works
+   down, an early (high-t) bias has the most steps left to compound through.
+4. **A theoretical framing that ties #1-#3 together:** DDPM's "reverse step
+   is approximately Gaussian" assumption is only justified when beta_t is
+   small *relative to local mode spacing and weight*, not small in an
+   absolute sense (`beta1_sweep.py` demonstrates this quantitatively; see
+   `step0_forward_backward.py`'s panel 3 for a direct example -- the same
+   beta1 gives unimodal posteriors at the three bump centers but bimodal
+   posteriors at the two gaps between them). Yellow's "safe" threshold is
+   stricter than red's or green's (flanked on both sides, minority weight),
+   but a real schedule beta_t(t) is a single global function of t, so it
+   cannot be simultaneously safe everywhere.
+5. **Tested and ruled out: finer per-step noise does not fix it, at matched
+   compute.** If (4) were the dominant mechanism, using smaller beta_t with
+   more steps (same total noise budget) should help, since it pushes the
+   *exact* posterior toward unimodal almost everywhere. Tested T=200
+   (beta: 0.0005->0.04, alpha_bar_T=0.0165, matching the original
+   schedule's endpoint) with N_ITERS=40000 (matching the compute budget of
+   the T=100/40k-iteration comparison run in finding #2). Result: yellow
+   came out at 0.101 -- statistically indistinguishable from the T=100/40k
+   result (0.100). No additional benefit from finer granularity. Likely
+   explanation: finer steps spread the *same* fixed per-batch training
+   imbalance (yellow is still only 1/7 of every batch) across twice as many
+   distinct `t` values for the network to learn, trading one shape of the
+   data-scarcity problem for another rather than resolving it. This
+   suggests training-data imbalance and/or the high-t red/green bias from
+   finding #3 -- not per-step schedule coarseness -- are the dominant
+   levers.
+
+6. **Multi-seed check (`multiseed_check.py`): both effects are systematic,
+   not run-specific noise.** Retrained the default T=100 configuration from
+   3 independent seeds. Yellow's shortfall is consistent and large in every
+   run (seeds 0/1/2: generated 0.065 / 0.046 / 0.065 vs. exact true 0.121 --
+   46-62% low every time). More surprisingly, the red/green asymmetry
+   flagged as "probably just optimization noise" in finding #2 turned out
+   to be **also consistent across all 3 seeds**: red always came out below
+   its true 0.427 (0.395 / 0.389 / 0.412) and green always above (0.449 /
+   0.480 / 0.442) -- despite red and green being exactly symmetric in the
+   true distribution (same weight, spacing, and std). So there are
+   apparently *two* distinct systematic effects layered on top of each
+   other: (a) yellow's minority/flanked-mode shortfall, consistent with
+   findings #1-#5, and (b) a separate, reproducible red-vs-green bias whose
+   origin isn't yet explained -- it isn't predicted by anything in the data
+   (which is symmetric), so it likely comes from some asymmetry in the
+   architecture, the (x_t, t) input encoding, or the training/optimization
+   procedure itself.
+
+**Open next steps:**
+
+- Investigate the newly-confirmed systematic red/green bias directly: it
+  is unexplained by the (symmetric) data, so the search should focus on
+  the network/training pipeline itself -- e.g. whether initialization,
+  the tanh activation's odd symmetry interacting with the extra `t` input
+  dimension, or the Adam optimizer's update dynamics break the x -> -x
+  symmetry consistently rather than randomly per seed.
 - Track individual sample trajectories through the reverse chain (store
-  `x_t` at every step for a batch of samples) to see roughly which `t`
-  range is where a trajectory's fate near yellow gets decided, i.e. where
-  it commits to or drifts away from that basin.
+  `x_t` at every step for a batch of samples) to see which `t` range is
+  where a trajectory's fate near yellow -- and separately, near red vs.
+  green -- actually gets decided.
+- If training-data imbalance is confirmed as the dominant factor behind
+  yellow specifically, look for a legitimate (non-oracle) mitigation --
+  i.e. one that doesn't require knowing the true component weights, since
+  real data has no such ground truth (a self-estimated density correction
+  from the training data itself would qualify; reweighting by the known
+  true weights would not -- it changes what distribution is being fit
+  rather than correcting an estimation error, see conversation history for
+  why this was rejected).
