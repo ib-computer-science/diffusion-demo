@@ -33,7 +33,10 @@ Simplifying to two modes removes that confound from the rest of the demo.
   distribution `p(x0, x1)`, and the exact conditional-mean curve
   `E[x0|x1=v]`. This all works in closed form only because `p(x0)` is a
   known GMM — a real DDPM needs a learned approximation precisely because
-  real data distributions aren't known analytically.
+  real data distributions aren't known analytically. `joint_pdf_adjacent`/
+  `exact_conditional_mean_adjacent` generalize the same math to *adjacent*
+  intermediate steps (x_t vs. x_{t+1}), not just x0 vs. x_t, by treating
+  x_t's own marginal as the "prior" (see `learned_curve_on_joint_adjacent.py`).
 - **`step0_forward_backward.py`** — 4-panel figure: `p(x0)`, `q(x1)` after
   one forward step, the exact reverse posterior for several example `x1`
   values (showing genuine bimodality at ambiguous points), and the joint
@@ -67,7 +70,9 @@ Simplifying to two modes removes that confound from the rest of the demo.
   fixable approximation error, not the fundamental limitation. The wiggle
   itself never goes away, at any model size -- it's the shape of the exact
   conditional mean, not something a bigger network could smooth *into*
-  existence or *out of* existence.
+  existence or *out of* existence. Plots x1 horizontally and x0 vertically
+  (with a vertical hue strip labeling the y-axis), matching how the curve
+  is actually used in reverse sampling: observe x1, read E[x0|x1] off it.
 - **`multi_step_forward.py`** — chains `t=0..4` forward steps at a
   *constant* beta1, using the closed-form direct-jump formula.
 - **`schedule_comparison.py`** — same 4 steps, constant vs. a linearly
@@ -99,6 +104,8 @@ Simplifying to two modes removes that confound from the rest of the demo.
   that script calls `matplotlib.use("Agg")` for its own PNG-saving; an
   interactive script importing it directly would silently inherit that
   non-interactive backend and `plt.show()` would do nothing.
+  `reverse_sample_trajectory` returns every intermediate step instead of
+  just the final result (`reverse_sample` is now a thin wrapper around it).
 - **`train_multistep_model.py`** — trains the canonical model
   (hidden=192, N_ITERS=60000) once and saves its weights to
   `checkpoints/multistep_model.npz` (gitignored, like `output/`) via
@@ -121,6 +128,24 @@ Simplifying to two modes removes that confound from the rest of the demo.
   retraining, for when you just want the figure for whatever checkpoint is
   currently saved (e.g. after switching data distributions on a branch)
   without paying for another full training run.
+- **`trajectory_image.py`** — one image, many trajectories: each pixel
+  column is one sample's full reverse-diffusion path (via
+  `reverse_sample_trajectory`), colored by hue at every step, from noise
+  at the bottom to a generated sample at the top. Columns are sorted by
+  final x0, turning the upper rows into a visible "basin of attraction"
+  shape for each color. Uses 1:1 axis scaling (`aspect="equal"`) so each
+  (sample, t) cell renders as a true square.
+- **`learned_curve_on_joint_adjacent.py`** — the same exact-vs-learned
+  curve idea as `learned_curve_on_joint.py`, but for a single pair of
+  *adjacent* intermediate steps (default t=10 -> 11) instead of a direct
+  jump back to x0. Uses two new generalizations in `ddpm_step.py`
+  (`joint_pdf_adjacent`, `exact_conditional_mean_adjacent`): x_t's own
+  marginal distribution plays the role p(x0) played before, and the
+  forward relation uses the single-step alpha_{t+1}/beta_{t+1} instead of
+  a cumulative alpha_bar. The joint turns out to be a single tight,
+  nearly-diagonal band rather than separated blobs -- individual steps
+  deep in the schedule are close to identity maps, unlike the
+  deliberately-exaggerated first step (beta1=0.005) in the original demo.
 
 ## Closed investigation: the yellow bump
 
