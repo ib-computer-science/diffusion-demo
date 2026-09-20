@@ -37,12 +37,13 @@ OUT_DIR = "output"
 X_GRID = np.linspace(-1.0, 1.0, 1000)
 EXAMPLE_VS = [-1 / 3, -1 / 6, 0.0, 1 / 6, 1 / 3]
 
-N_ITERS = 4000
+HIDDEN = 192
+N_ITERS = 20000
 BATCH_SIZE = 512
 
 
 def train(rng):
-    model = TinyMLP(hidden=64, rng=rng, lr=2e-3)
+    model = TinyMLP(hidden=HIDDEN, rng=rng, lr=2e-3)
     losses = []
     for _ in range(N_ITERS):
         x0 = sample_gmm(BATCH_SIZE, rng)

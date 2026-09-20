@@ -38,18 +38,26 @@ back for the colored "hue strip" shown under most plots.
   backward/Adam, no autograd) so training is fully transparent. Supports
   arbitrary input dimension (originally just `x_t`; later `[x_t, t]`).
 - **`train_denoiser.py`** — trains a single-step (fixed beta1=0.005) noise
-  predictor via the standard MSE objective, then compares the learned
-  reverse posterior against the exact one. Demonstrates that MSE training
-  recovers only `E[x0|x1=v]` (a mean), so at ambiguous `v` the learned
-  model collapses true bimodality into one Gaussian sitting between the
-  modes ("mode averaging"). Verified the training loss plateau against the
-  theoretical Bayes-optimal floor computed from the exact posterior
-  variance.
+  predictor (hidden=192, 20000 iterations -- large enough to get within
+  ~3% of the theoretical Bayes-optimal loss floor, see below) via the
+  standard MSE objective, then compares the learned reverse posterior
+  against the exact one. Demonstrates that MSE training recovers only
+  `E[x0|x1=v]` (a mean), so at ambiguous `v` the learned model collapses
+  true bimodality into one Gaussian sitting between the modes ("mode
+  averaging") -- and this happens even at near-Bayes-optimal training, so
+  it isn't a capacity/undertraining artifact, it's what squared-error loss
+  necessarily produces.
 - **`learned_curve_on_joint.py`** — plots the exact `E[x0|x1=v]` curve and
   the trained MLP's implied curve directly on the joint-density heatmap.
-  The exact curve wiggles through the low-density gaps between hue bumps
-  (encoding real multimodal ambiguity); the learned curve smooths that
-  wiggle out.
+  With the original small model (hidden=64, 4000 iterations) the learned
+  curve visibly smoothed out the wiggle that encodes real multimodal
+  ambiguity; with the bigger model above, the learned curve now tracks the
+  exact wiggle almost exactly (loss ~0.598 vs. a Bayes-optimal floor of
+  ~0.582), isolating that the wiggle-smoothing seen at small scale was a
+  fixable approximation error, not the fundamental limitation. The wiggle
+  itself never goes away, at any model size -- it's the shape of the exact
+  conditional mean, not something a bigger network could smooth *into*
+  existence or *out of* existence.
 - **`multi_step_forward.py`** — chains `t=0..4` forward steps at a
   *constant* beta1, using the closed-form direct-jump formula.
 - **`schedule_comparison.py`** — same 4 steps, constant vs. a linearly
