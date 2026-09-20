@@ -7,11 +7,16 @@ Trains the multi-step model once at startup -- the only slow part (a few
 minutes). Every Enter press after that is a single reverse pass through the
 already-trained model for one sample, which takes a fraction of a second.
 
-Uses train_multistep_improved's architecture (sinusoidal time embedding,
-hidden=192 -- see CLAUDE.md's yellow-bump investigation for why this one
-and not the original train_multistep.py), but with fewer iterations than
-that script's canonical N_ITERS=60000, trading some sample quality for a
-startup time closer to a couple of minutes instead of ten.
+Uses multistep_model's architecture (sinusoidal time embedding, hidden=192
+-- see CLAUDE.md's yellow-bump investigation for why this one and not the
+original train_multistep.py's), but with fewer iterations than that
+model's canonical N_ITERS=60000, trading some sample quality for a startup
+time closer to a couple of minutes instead of ten.
+
+Deliberately imports multistep_model (not train_multistep_improved) since
+the latter calls matplotlib.use("Agg") for its own non-interactive
+PNG-saving -- importing it here would force that same non-interactive
+backend on this script too, silently breaking plt.show().
 """
 
 import time
@@ -20,27 +25,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-import train_multistep_improved as tmi
+import multistep_model as mm
 from hue_gmm import x_to_hue, x_to_rgb
 
-N_ITERS = 20000  # faster startup than tmi's canonical 60000; still has the sinusoidal-t fix
+N_ITERS = 20000  # faster startup than mm's canonical 60000; still has the sinusoidal-t fix
 
 rng = np.random.default_rng()
 
 
 def train_model():
-    tmi.N_ITERS = N_ITERS
-    print(f"Training the {tmi.HIDDEN}-hidden-unit multi-step model "
+    print(f"Training the {mm.HIDDEN}-hidden-unit multi-step model "
           f"({N_ITERS} iterations) -- this takes a few minutes...")
     t0 = time.time()
-    model, losses = tmi.train(rng)
+    model, losses = mm.train(rng, n_iters=N_ITERS)
     print(f"done in {time.time() - t0:.0f}s (final loss {np.mean(losses[-200:]):.4f})")
     return model
 
 
 def new_pair(model):
     x_T = float(rng.normal())
-    x0 = float(tmi.reverse_sample(model, 1, rng, x_init=np.array([x_T]))[0])
+    x0 = float(mm.reverse_sample(model, 1, rng, x_init=np.array([x_T]))[0])
     return x_T, x0
 
 

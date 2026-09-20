@@ -12,6 +12,10 @@ Two changes relative to train_multistep.py:
      (train_multistep.py used hidden=128, N_ITERS=20000; doubling iterations
      there alone previously shrank yellow's shortfall from ~44% low to
      ~16% low -- see CLAUDE.md finding #2).
+
+The model logic itself lives in multistep_model.py (kept free of
+matplotlib) so that interactive viewers can reuse it without inheriting
+this script's forced non-interactive Agg backend.
 """
 
 import os
@@ -23,77 +27,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from hue_gmm import gmm_pdf, sample_gmm, x_to_rgb
-from mlp import TinyMLP
-from schedule import ALPHA_BARS, ALPHAS, BETAS, T
+from multistep_model import HIDDEN, INPUT_DIM, LR, N_ITERS, REGIONS, basin_fracs, make_inputs, reverse_sample, train
+from schedule import T
 
 OUT_DIR = "output"
 X_GRID = np.linspace(-1.0, 1.0, 1000)
-
-HIDDEN = 192
-N_ITERS = 60000
-BATCH_SIZE = 512
-LR = 2e-3
-TIME_FREQS = (1, 2, 4, 8, 16, 32)
-INPUT_DIM = 1 + 2 * len(TIME_FREQS)
-
-REGIONS = [("red", -0.5, -0.18), ("yellow", -0.08, 0.08), ("green", 0.18, 0.5)]
-
-
-def time_embedding(t_norm):
-    """t_norm: (N,) in (0, 1] -> (N, 2*len(TIME_FREQS)) sinusoidal features."""
-    t_norm = np.asarray(t_norm)[:, None]
-    freqs = np.array(TIME_FREQS)[None, :]
-    angles = 2.0 * np.pi * freqs * t_norm
-    return np.concatenate([np.sin(angles), np.cos(angles)], axis=1)
-
-
-def make_inputs(x, t_norm):
-    return np.concatenate([x[:, None], time_embedding(t_norm)], axis=1)
-
-
-def train(rng):
-    model = TinyMLP(input_dim=INPUT_DIM, hidden=HIDDEN, rng=rng, lr=LR)
-    losses = []
-    for _ in range(N_ITERS):
-        x0 = sample_gmm(BATCH_SIZE, rng)
-        t_idx = rng.integers(1, T + 1, size=BATCH_SIZE)
-        alpha_bar_t = ALPHA_BARS[t_idx - 1]
-        eps = rng.normal(size=BATCH_SIZE)
-        x_t = np.sqrt(alpha_bar_t) * x0 + np.sqrt(1.0 - alpha_bar_t) * eps
-
-        inputs = make_inputs(x_t, t_idx / T)
-        eps_hat = model.forward(inputs)[:, 0]
-        residual = eps_hat - eps
-        losses.append(np.mean(residual**2))
-
-        grad_out = (2.0 / BATCH_SIZE) * residual[:, None]
-        model.backward(grad_out)
-    return model, losses
-
-
-def reverse_sample(model, n_samples, rng, x_init=None):
-    """x_init lets a caller supply (and thus display/track) the exact x_T
-    the reverse process starts from, instead of it being drawn internally."""
-    x = rng.normal(size=n_samples) if x_init is None else np.asarray(x_init, dtype=float)
-    for t in range(T, 0, -1):
-        t_norm = np.full(n_samples, t / T)
-        eps_hat = model.predict(make_inputs(x, t_norm))[:, 0]
-
-        alpha_t = ALPHAS[t - 1]
-        beta_t = BETAS[t - 1]
-        alpha_bar_t = ALPHA_BARS[t - 1]
-
-        mean = (x - (beta_t / np.sqrt(1.0 - alpha_bar_t)) * eps_hat) / np.sqrt(alpha_t)
-        if t > 1:
-            z = rng.normal(size=n_samples)
-            x = mean + np.sqrt(beta_t) * z
-        else:
-            x = mean
-    return x
-
-
-def basin_fracs(x0):
-    return {name: float(np.mean((x0 > lo) & (x0 < hi))) for name, lo, hi in REGIONS}
 
 
 def hue_strip(ax, y0, y1, n=600):
