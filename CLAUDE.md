@@ -4,6 +4,11 @@ A from-scratch, dependency-light (NumPy + Matplotlib only) walkthrough of DDPM
 mechanics using a 1D toy distribution, built incrementally to make each piece
 of the theory visible before moving to the next.
 
+**Branch `two-mode-red-green` (this branch, local only, not pushed):** drops
+yellow entirely and tests a plain 2-mode red:green=2:1 distribution instead.
+See "Branch: two-mode-red-green" near the end of this file for why and what
+it found.
+
 ## The data
 
 `hue_gmm.py` defines the toy distribution: the **hue** channel of an HSV
@@ -104,6 +109,11 @@ back for the colored "hue strip" shown under most plots.
   the noise input and denoised result side by side. Loads the saved
   checkpoint above, so startup is near-instant instead of a multi-minute
   training wait.
+- **`plot_multistep_from_checkpoint.py`** — original-vs-reverse-sampled
+  comparison plot using `multistep_model.load_trained()` instead of
+  retraining, for when you just want the figure for whatever checkpoint is
+  currently saved (e.g. after switching data distributions on a branch)
+  without paying for another full training run.
 
 ## Open investigation: the yellow bump is underrepresented
 
@@ -274,3 +284,47 @@ attempt (naive density reweighting) made things worse rather than better.
 - Track individual sample trajectories through the reverse chain (store
   `x_t` at every step for a batch of samples) to see which `t` range is
   where a trajectory's fate near yellow actually gets decided.
+
+## Branch: two-mode-red-green
+
+Local-only branch (not pushed) that drops yellow from `hue_gmm.py` entirely,
+leaving just two components: red weight 2/3, green weight 1/3 (means and
+stds unchanged from main -- `HUE_SHIFT=60` was already exactly the
+red/green midpoint, so it needed no change). Also updated the `REGIONS`
+basin-occupancy windows in `multistep_model.py`, `multiseed_check.py`, and
+`exact_reverse_multistep.py` to drop yellow's window. Added
+`plot_multistep_from_checkpoint.py` (see above) to get the comparison
+figure without paying for a full retrain each time.
+
+**Purpose:** isolate plain minority-weight underrepresentation from the
+"flanked on both sides" complication that made yellow hard to interpret on
+main -- does a minority mode still get shorted when it only has *one*
+neighbor instead of two?
+
+**Finding: no, it recovers almost perfectly.** Retrained the canonical
+multi-step model (hidden=192, sinusoidal time embedding, N_ITERS=60000) on
+this two-mode data and compared generated vs. true basin occupancy
+(20k samples):
+
+| region | true | generated |
+|---|---|---|
+| red (2/3) | 0.6618 | 0.6535 |
+| green (1/3) | 0.3373 | 0.3368 |
+
+Green (the minority mode, same 1/3-ish weight scale as yellow's 1/7 was
+small) comes out essentially exact -- no meaningful shortfall, no
+red/green-style asymmetry either. This is a real contrast with yellow's
+26-44% shortfall on main under comparable training. Since minority weight
+alone clearly isn't sufficient to reproduce the problem, this is fairly
+strong evidence that yellow's specific disadvantage on main -- being
+squeezed between *two* heavier competitors at once, not just having low
+weight -- was the dominant mechanism, more than training-data imbalance in
+isolation. (Training imbalance is still real and still matters -- finding
+#2 on main showed more training measurably helps -- but apparently it's
+not sufficient by itself to produce a shortfall this large without the
+double-flanking on top of it.)
+
+**Open next step on this branch:** try an *asymmetric* single-neighbor
+case with a more extreme ratio (e.g. 6:1 instead of 2:1) to see whether
+severe-enough single-sided imbalance alone can reproduce a yellow-sized
+shortfall, or whether double-flanking really does look necessary.
