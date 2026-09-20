@@ -8,6 +8,10 @@ ddpm_step.posterior_mean_curve). This script overlays that exact curve, and
 the curve implied by the trained MLP, directly on the joint-density heatmap
 from step0_forward_backward.py, to show precisely what training recovers
 and where it's forced to cut through low-density gaps between hue bumps.
+
+x1 is plotted horizontally and x0 vertically, matching how the curve is
+actually used in reverse sampling: you observe x1 and read E[x0|x1] off
+the curve, so x1 is the input axis and x0 is the output axis.
 """
 
 import os
@@ -24,10 +28,11 @@ from train_denoiser import A1, BETA1, train
 OUT_DIR = "output"
 
 
-def hue_strip(ax, y0, y1, n=600):
-    xs = np.linspace(*ax.get_xlim(), n)
-    colors = np.array([x_to_rgb(x) for x in xs])[None, :, :]
-    ax.imshow(colors, extent=[xs[0], xs[-1], y0, y1], aspect="auto", origin="lower", zorder=0)
+def hue_strip_vertical(ax, x0, x1, n=600):
+    """A narrow vertical color strip labeling the y-axis (x0) by hue."""
+    ys = np.linspace(*ax.get_ylim(), n)
+    colors = np.array([x_to_rgb(v) for v in ys])[:, None, :]
+    ax.imshow(colors, extent=[x0, x1, ys[0], ys[-1]], aspect="auto", origin="lower", zorder=0)
 
 
 def main():
@@ -48,19 +53,19 @@ def main():
     learned_curve = (v_grid - np.sqrt(BETA1) * eps_hat) / np.sqrt(A1)
 
     fig, ax = plt.subplots(figsize=(7.5, 7))
-    strip_h = 0.08 * 2 * lim
-    ax.set_xlim(-lim, lim)
-    ax.set_ylim(-lim - strip_h, lim)
-    im = ax.imshow(joint.T, origin="lower", extent=[-lim, lim, -lim, lim], aspect="auto", cmap="viridis")
-    hue_strip(ax, -lim - strip_h, -lim)
+    strip_w = 0.08 * 2 * lim
+    ax.set_xlim(-lim - strip_w, lim)
+    ax.set_ylim(-lim, lim)
+    im = ax.imshow(joint, origin="lower", extent=[-lim, lim, -lim, lim], aspect="auto", cmap="viridis")
+    hue_strip_vertical(ax, -lim - strip_w, -lim)
 
-    ax.plot(exact_curve, v_grid, color="white", linewidth=2.2, label="exact E[x0 | x1=v]")
-    ax.plot(learned_curve, v_grid, color="tab:orange", linewidth=2.0, linestyle="--",
+    ax.plot(v_grid, exact_curve, color="white", linewidth=2.2, label="exact E[x0 | x1=v]")
+    ax.plot(v_grid, learned_curve, color="tab:orange", linewidth=2.0, linestyle="--",
             label="learned (from trained MLP)")
 
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="density")
-    ax.set_xlabel("x0")
-    ax.set_ylabel("x1")
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x0")
     ax.set_title("What the MLP learns: a curve through p(x0, x1)")
     ax.legend(fontsize=9, loc="upper left")
 
