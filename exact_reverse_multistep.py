@@ -27,7 +27,7 @@ from schedule import ALPHA_BARS, ALPHAS, BETAS, T
 
 OUT_DIR = "output"
 X_GRID = np.linspace(-1.0, 1.0, 1000)
-REGIONS = [("red", -0.5, -0.18), ("yellow", -0.08, 0.08), ("green", 0.18, 0.5)]
+REGIONS = [("red", -0.5, -0.05), ("green", 0.05, 0.5)]  # no yellow on this branch
 
 
 def exact_eps_hat(x, alpha_bar_t):

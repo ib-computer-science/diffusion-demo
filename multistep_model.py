@@ -27,7 +27,7 @@ INPUT_DIM = 1 + 2 * len(TIME_FREQS)
 
 CHECKPOINT_PATH = "checkpoints/multistep_model.npz"
 
-REGIONS = [("red", -0.5, -0.18), ("yellow", -0.08, 0.08), ("green", 0.18, 0.5)]
+REGIONS = [("red", -0.5, -0.05), ("green", 0.05, 0.5)]  # no yellow on this branch
 
 
 def time_embedding(t_norm):
