@@ -78,6 +78,12 @@ def joint_pdf(x0, x1, beta1, weights=WEIGHTS, means=MEANS, stds=STDS):
     return gmm_pdf(x0, weights, means, stds) * normal_pdf(x1, np.sqrt(a1) * x0, np.sqrt(beta1))
 
 
+def joint_pdf_xt(x0, xt, alpha_bar_t, weights=WEIGHTS, means=MEANS, stds=STDS):
+    """p(x0, x_t) = p(x0) * q(x_t | x0), via the direct-jump relation, for
+    any alpha_bar_t (any t, not just t=1). Generalizes joint_pdf."""
+    return gmm_pdf(x0, weights, means, stds) * normal_pdf(xt, np.sqrt(alpha_bar_t) * x0, np.sqrt(1.0 - alpha_bar_t))
+
+
 def posterior_mean_curve(x1_grid, beta1, weights=WEIGHTS, means=MEANS, stds=STDS):
     """E[x0 | x1=v] for each v in x1_grid: the density-weighted centroid of
     each horizontal slice through the joint distribution."""
@@ -86,6 +92,34 @@ def posterior_mean_curve(x1_grid, beta1, weights=WEIGHTS, means=MEANS, stds=STDS
         resp, post_mean, _ = posterior_given_x1(v, beta1, weights, means, stds)
         out[i] = (resp * post_mean).sum()
     return out
+
+
+def exact_conditional_mean_x0(v_array, alpha_bar_t, weights=WEIGHTS, means=MEANS, stds=STDS):
+    """Vectorized exact E[x0 | x_t=v] for a batch of v's, at a fixed
+    alpha_bar_t (any t, not just t=1) -- via the direct-jump relation
+    x_t = sqrt(alpha_bar_t)*x0 + sqrt(1-alpha_bar_t)*eps, same closed form
+    as posterior_given_x1 generalized to alpha_bar_t and batched over v.
+
+    Used as an "oracle" noise-predictor: a zero-training-error stand-in for
+    a neural network, to isolate whether the fixed reverse-step variance
+    (sigma_t^2=beta_t) alone -- independent of any network approximation
+    error -- causes minor modes to be underrepresented after many-step
+    ancestral sampling.
+    """
+    v = np.asarray(v_array)[:, None]  # (N, 1)
+    prior_var = stds**2  # (K,)
+    signal_coef = np.sqrt(alpha_bar_t)
+    noise_var = 1.0 - alpha_bar_t
+
+    post_var = 1.0 / (signal_coef**2 / noise_var + 1.0 / prior_var)  # (K,)
+    post_mean = post_var * (signal_coef * v / noise_var + means / prior_var)  # (N, K)
+
+    marg_var = signal_coef**2 * prior_var + noise_var  # (K,)
+    marg_mean = signal_coef * means  # (K,)
+    likelihood = weights * normal_pdf(v, marg_mean, np.sqrt(marg_var))  # (N, K)
+    responsibilities = likelihood / likelihood.sum(axis=1, keepdims=True)  # (N, K)
+
+    return (responsibilities * post_mean).sum(axis=1)  # (N,)
 
 
 def sample_posterior(v_array, beta1, rng, weights=WEIGHTS, means=MEANS, stds=STDS):
