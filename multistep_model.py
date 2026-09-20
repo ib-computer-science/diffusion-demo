@@ -66,7 +66,15 @@ def train(rng, n_iters=None):
 def reverse_sample(model, n_samples, rng, x_init=None):
     """x_init lets a caller supply (and thus display/track) the exact x_T
     the reverse process starts from, instead of it being drawn internally."""
+    return reverse_sample_trajectory(model, n_samples, rng, x_init=x_init)[-1]
+
+
+def reverse_sample_trajectory(model, n_samples, rng, x_init=None):
+    """Like reverse_sample, but returns every intermediate step instead of
+    just the final result: shape (T+1, n_samples), row 0 = x_T (initial
+    noise), row T = x_0 (final denoised result)."""
     x = rng.normal(size=n_samples) if x_init is None else np.asarray(x_init, dtype=float)
+    trajectory = [x.copy()]
     for t in range(T, 0, -1):
         t_norm = np.full(n_samples, t / T)
         eps_hat = model.predict(make_inputs(x, t_norm))[:, 0]
@@ -81,7 +89,8 @@ def reverse_sample(model, n_samples, rng, x_init=None):
             x = mean + np.sqrt(beta_t) * z
         else:
             x = mean
-    return x
+        trajectory.append(x.copy())
+    return np.array(trajectory)
 
 
 def load_trained(path=CHECKPOINT_PATH):
