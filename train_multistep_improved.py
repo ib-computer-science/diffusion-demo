@@ -71,8 +71,10 @@ def train(rng):
     return model, losses
 
 
-def reverse_sample(model, n_samples, rng):
-    x = rng.normal(size=n_samples)  # x_T ~ N(0, 1)
+def reverse_sample(model, n_samples, rng, x_init=None):
+    """x_init lets a caller supply (and thus display/track) the exact x_T
+    the reverse process starts from, instead of it being drawn internally."""
+    x = rng.normal(size=n_samples) if x_init is None else np.asarray(x_init, dtype=float)
     for t in range(T, 0, -1):
         t_norm = np.full(n_samples, t / T)
         eps_hat = model.predict(make_inputs(x, t_norm))[:, 0]
