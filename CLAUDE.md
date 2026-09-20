@@ -180,23 +180,63 @@ Leaked mass shows up mostly in green, not spread evenly.
    architecture, the (x_t, t) input encoding, or the training/optimization
    procedure itself.
 
+7. **Mirror-symmetry test on the red/green bias: probably not a hard bug.**
+   Mirrored the data (negated all component means, so red and green swap
+   positions -- a meaningless change mathematically, since they're
+   statistically identical apart from label) and retrained from 2 seeds.
+   A deterministic sign-based bug should keep favoring the same geometric
+   side regardless of which color sits there; instead one seed flipped to
+   favor the other side and one didn't. Combined with the fact that 3/3
+   seeds agreeing in the un-mirrored test has a ~25% chance of happening by
+   pure luck even in an unbiased process, this walks back finding #6's
+   framing -- a manual code review of `mlp.py` and `train_multistep.py`
+   found no actual defect either. Best current read: seed-and-data-specific
+   optimization dynamics, not a deterministic implementation bug.
+8. **`train_multistep_improved.py` (sinusoidal multi-frequency time
+   embedding instead of raw scalar `t/T`, plus hidden=192) fixed the
+   red/green asymmetry outright**, and the fix held robustly across both
+   30k and 60k training iterations (red/green: 0.414/0.404 at 30k,
+   0.410/0.408 at 60k -- both close to the true 0.427/0.427). This was a
+   welcome side effect, not the intended target. **Yellow, however,
+   plateaued**: 0.090 at both 30k (29% low) and 60k (26% low) iterations,
+   with the loss curve visibly flat over that doubling. Since more
+   training only bought large gains the *first* time we tried it (finding
+   #2, starting from a badly undertrained state), plateauing here despite
+   still having room to improve elsewhere (fixing red/green) points to a
+   persistent, structural bottleneck: every training batch draws
+   yellow-region examples at a fixed 1:3:3 ratio relative to red/green,
+   forever -- more iterations reduce noise but can never change that ratio.
+9. **First attempt at a legitimate (non-oracle) fix backfired.**
+   `train_multistep_reweighted.py` reweights the training loss by
+   `1/density(x0)`, where density is estimated from a large pool of
+   samples drawn from the same unlabeled source used for training (no
+   ground-truth component weights involved, unlike the earlier-rejected
+   `1/pi_k` idea). Result: yellow flipped to *over*-represented (0.161 vs.
+   true 0.114), but at real cost -- final loss got worse, and the
+   generated histogram became broad and lumpy (several spurious bumps,
+   only ~74% of mass landing in any of the three defined regions vs.
+   ~93-97% in every prior run). Likely cause: the weight is based on x0's
+   rarity but applied uniformly at every `t`, including large `t` where
+   `x_t` is nearly pure noise and barely depends on x0 at all --
+   upweighting "rare x0" there just injects large, inappropriate gradient
+   scale where the rarity signal is no longer meaningful. A refined version
+   would need to decay the reweighting toward 1 as `t` grows, or weight by
+   an estimate of `x_t`'s own local density instead of x0's.
+
+**Current status:** the investigation is well-characterized but not fully
+resolved. Ruled out: fixed-variance sampling, compounding over steps,
+schedule coarseness, and (most likely) a hard code bug. Confirmed
+structural: yellow's shortfall survives more training, more capacity, and
+a richer time embedding, and tracks a fixed per-batch sampling ratio rather
+than an easily-fixed approximation error. One legitimate mitigation
+attempt (naive density reweighting) made things worse rather than better.
+
 **Open next steps:**
 
-- Investigate the newly-confirmed systematic red/green bias directly: it
-  is unexplained by the (symmetric) data, so the search should focus on
-  the network/training pipeline itself -- e.g. whether initialization,
-  the tanh activation's odd symmetry interacting with the extra `t` input
-  dimension, or the Adam optimizer's update dynamics break the x -> -x
-  symmetry consistently rather than randomly per seed.
+- Refine the reweighting idea to be `t`-dependent (decay weight strength
+  toward 1 as `t` increases, or base it on estimated `x_t` density rather
+  than x0's) rather than applying a single x0-based weight uniformly
+  across the whole schedule.
 - Track individual sample trajectories through the reverse chain (store
   `x_t` at every step for a batch of samples) to see which `t` range is
-  where a trajectory's fate near yellow -- and separately, near red vs.
-  green -- actually gets decided.
-- If training-data imbalance is confirmed as the dominant factor behind
-  yellow specifically, look for a legitimate (non-oracle) mitigation --
-  i.e. one that doesn't require knowing the true component weights, since
-  real data has no such ground truth (a self-estimated density correction
-  from the training data itself would qualify; reweighting by the known
-  true weights would not -- it changes what distribution is being fit
-  rather than correcting an estimation error, see conversation history for
-  why this was rejected).
+  where a trajectory's fate near yellow actually gets decided.
