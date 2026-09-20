@@ -5,6 +5,11 @@ sample at the top. Every pixel is colored by the hue that value maps to
 colors at the bottom sharpen into solid red/green columns by the top,
 directly visualizing the reverse process across many samples in parallel.
 
+Columns are sorted by their final (x0) value, so trajectories that end up
+red are grouped together and separate from ones that end up green -- this
+turns the bottom rows into a visible "basin of attraction" shape for each
+color, instead of the two outcomes being interleaved randomly across x.
+
 Loads the trained checkpoint (multistep_model.load_trained) rather than
 training -- run train_multistep_model.py first if it doesn't exist yet.
 """
@@ -36,6 +41,8 @@ def main():
     model = load_trained()
 
     trajectory = reverse_sample_trajectory(model, N_SAMPLES, rng)  # (T+1, N_SAMPLES)
+    sort_order = np.argsort(trajectory[-1])
+    trajectory = trajectory[:, sort_order]
     image = trajectories_to_rgb(trajectory)
 
     fig, ax = plt.subplots(figsize=(12, 12 * T / N_SAMPLES + 1.2))
@@ -46,9 +53,9 @@ def main():
     # array row.
     ax.imshow(image, origin="lower", aspect="equal", interpolation="nearest",
               extent=[0, N_SAMPLES, T, 0])
-    ax.set_xlabel("sample index")
+    ax.set_xlabel("sample index (sorted by final x0)")
     ax.set_ylabel("t  (bottom=T, noise -> top=0, generated)")
-    ax.set_title(f"{N_SAMPLES} reverse-diffusion trajectories, colored by hue")
+    ax.set_title(f"{N_SAMPLES} reverse-diffusion trajectories, colored by hue, sorted by outcome")
 
     fig.tight_layout()
     out_path = os.path.join(OUT_DIR, "trajectory_image.png")
