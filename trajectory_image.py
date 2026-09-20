@@ -38,13 +38,13 @@ def main():
     trajectory = reverse_sample_trajectory(model, N_SAMPLES, rng)  # (T+1, N_SAMPLES)
     image = trajectories_to_rgb(trajectory)
 
-    fig, ax = plt.subplots(figsize=(9, 12))
+    fig, ax = plt.subplots(figsize=(12, 12 * T / N_SAMPLES + 1.2))
     # extent's y-range is (T, 0), not (0, T): row 0 of the array (x_T, noise)
     # is drawn at the bottom via origin="lower", and this makes the axis
     # ticks read "T" there and "0" at the top, matching that directly,
     # instead of mislabeling the bottom as t=0 just because it's the first
     # array row.
-    ax.imshow(image, origin="lower", aspect="auto", interpolation="nearest",
+    ax.imshow(image, origin="lower", aspect="equal", interpolation="nearest",
               extent=[0, N_SAMPLES, T, 0])
     ax.set_xlabel("sample index")
     ax.set_ylabel("t  (bottom=T, noise -> top=0, generated)")
