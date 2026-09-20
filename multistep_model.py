@@ -10,6 +10,8 @@ static-figure scripts and interactive viewers (reverse_process_viewer.py)
 import it without one dictating the other's matplotlib backend.
 """
 
+import os
+
 import numpy as np
 
 from hue_gmm import sample_gmm
@@ -22,6 +24,8 @@ BATCH_SIZE = 512
 LR = 2e-3
 TIME_FREQS = (1, 2, 4, 8, 16, 32)
 INPUT_DIM = 1 + 2 * len(TIME_FREQS)
+
+CHECKPOINT_PATH = "checkpoints/multistep_model.npz"
 
 REGIONS = [("red", -0.5, -0.18), ("yellow", -0.08, 0.08), ("green", 0.18, 0.5)]
 
@@ -78,6 +82,17 @@ def reverse_sample(model, n_samples, rng, x_init=None):
         else:
             x = mean
     return x
+
+
+def load_trained(path=CHECKPOINT_PATH):
+    """Load a model saved by train_multistep_model.py, instead of training
+    one from scratch -- for consumers (e.g. reverse_process_viewer.py) that
+    just need a working model fast, not to demonstrate training itself."""
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"No trained model found at '{path}'. Run `python train_multistep_model.py` first."
+        )
+    return TinyMLP.load(path)
 
 
 def basin_fracs(x0):

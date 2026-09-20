@@ -66,3 +66,17 @@ class TinyMLP:
 
     def predict(self, x):
         return self.forward(x)
+
+    def save(self, path):
+        """Weights only -- enough to reconstruct a working predict(), not to
+        resume training (the Adam moment estimates aren't saved)."""
+        np.savez(path, W1=self.W1, b1=self.b1, W2=self.W2, b2=self.b2, W3=self.W3, b3=self.b3)
+
+    @classmethod
+    def load(cls, path):
+        data = np.load(path)
+        input_dim, hidden = data["W1"].shape
+        model = cls(input_dim=input_dim, hidden=hidden)
+        for p in model._params:
+            setattr(model, p, data[p])
+        return model

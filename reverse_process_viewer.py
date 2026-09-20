@@ -3,15 +3,10 @@ sample, run it back through the full trained 100-step reverse process, and
 see both the noise input and the resulting denoised x0 as colored squares
 side by side.
 
-Trains the multi-step model once at startup -- the only slow part (a few
-minutes). Every Enter press after that is a single reverse pass through the
-already-trained model for one sample, which takes a fraction of a second.
+Loads a pre-trained model (see multistep_model.load_trained) instead of
+training one itself, so startup is near-instant. Run this first, once:
 
-Uses multistep_model's architecture (sinusoidal time embedding, hidden=192
--- see CLAUDE.md's yellow-bump investigation for why this one and not the
-original train_multistep.py's), but with fewer iterations than that
-model's canonical N_ITERS=60000, trading some sample quality for a startup
-time closer to a couple of minutes instead of ten.
+    python train_multistep_model.py
 
 Deliberately imports multistep_model (not train_multistep_improved) since
 the latter calls matplotlib.use("Agg") for its own non-interactive
@@ -19,7 +14,7 @@ PNG-saving -- importing it here would force that same non-interactive
 backend on this script too, silently breaking plt.show().
 """
 
-import time
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,18 +23,14 @@ from matplotlib.patches import Rectangle
 import multistep_model as mm
 from hue_gmm import x_to_hue, x_to_rgb
 
-N_ITERS = 20000  # faster startup than mm's canonical 60000; still has the sinusoidal-t fix
-
 rng = np.random.default_rng()
 
 
-def train_model():
-    print(f"Training the {mm.HIDDEN}-hidden-unit multi-step model "
-          f"({N_ITERS} iterations) -- this takes a few minutes...")
-    t0 = time.time()
-    model, losses = mm.train(rng, n_iters=N_ITERS)
-    print(f"done in {time.time() - t0:.0f}s (final loss {np.mean(losses[-200:]):.4f})")
-    return model
+def load_model():
+    try:
+        return mm.load_trained()
+    except FileNotFoundError as e:
+        sys.exit(str(e))
 
 
 def new_pair(model):
@@ -58,7 +49,7 @@ def style_axis(ax):
 
 
 def main():
-    model = train_model()
+    model = load_model()
 
     fig, (ax_noise, ax_denoised) = plt.subplots(1, 2, figsize=(9, 4.7))
     style_axis(ax_noise)

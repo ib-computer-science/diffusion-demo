@@ -79,6 +79,32 @@ back for the colored "hue strip" shown under most plots.
   against the true `p(x0)`. Red/green recovered well; yellow (the minor
   mode) is visibly underrepresented — see below.
 
+## Interactive tools and reusable training
+
+- **`multistep_model.py`** — the multi-step model's logic (sinusoidal time
+  embedding, `train`, `reverse_sample`, `load_trained`), factored out of
+  `train_multistep_improved.py` and kept free of matplotlib. Needed because
+  that script calls `matplotlib.use("Agg")` for its own PNG-saving; an
+  interactive script importing it directly would silently inherit that
+  non-interactive backend and `plt.show()` would do nothing.
+- **`train_multistep_model.py`** — trains the canonical model
+  (hidden=192, N_ITERS=60000) once and saves its weights to
+  `checkpoints/multistep_model.npz` (gitignored, like `output/`) via
+  `mlp.TinyMLP.save`/`load`. Run this once; other programs then call
+  `multistep_model.load_trained()` instead of retraining from scratch.
+  Scripts whose point *is* to demonstrate training
+  (`train_multistep_improved.py`, `train_multistep_reweighted.py`, both of
+  which plot the loss curve) deliberately keep training their own model
+  fresh rather than loading this checkpoint.
+- **`sample_viewer.py`** — press Enter to draw a fresh sample from `p(x0)`
+  and see it as a colored square; a hands-on way to feel the true weights
+  (red/green common, yellow rare) instead of just reading a density curve.
+- **`reverse_process_viewer.py`** — press Enter to draw a fresh
+  `x_T ~ N(0,1)`, run it through the full trained reverse process, and see
+  the noise input and denoised result side by side. Loads the saved
+  checkpoint above, so startup is near-instant instead of a multi-minute
+  training wait.
+
 ## Open investigation: the yellow bump is underrepresented
 
 `train_multistep.py`'s reverse-sampled output systematically shorts the
