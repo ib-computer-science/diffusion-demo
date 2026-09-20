@@ -4,20 +4,25 @@ A from-scratch, dependency-light (NumPy + Matplotlib only) walkthrough of DDPM
 mechanics using a 1D toy distribution, built incrementally to make each piece
 of the theory visible before moving to the next.
 
-**Branch `two-mode-red-green` (this branch, local only, not pushed):** drops
-yellow entirely and tests a plain 2-mode red:green=2:1 distribution instead.
-See "Branch: two-mode-red-green" near the end of this file for why and what
-it found.
-
 ## The data
 
 `hue_gmm.py` defines the toy distribution: the **hue** channel of an HSV
-color, modeled as a 3-component Gaussian mixture (red, yellow, green), with
-weights 3/7, 1/7, 3/7. Hue is circular (0deg and 360deg coincide), so the
-circle is cut open in the empty blue region (~240deg) to avoid wraparound
-artifacts, then rescaled into a normalized coordinate `x` roughly in
-`[-1, 1]` (matching how DDPM normalizes pixel data). `x_to_rgb(x)` converts
-back for the colored "hue strip" shown under most plots.
+color, modeled as a 2-component Gaussian mixture (red, green), with weights
+2/3, 1/3. Hue is circular (0deg and 360deg coincide), but red=0deg and
+green=120deg both sit far from the empty blue region (~240deg), so the
+circle is cut open there to avoid wraparound artifacts, then rescaled into
+a normalized coordinate `x` roughly in `[-1, 1]` (matching how DDPM
+normalizes pixel data). `x_to_rgb(x)` converts back for the colored "hue
+strip" shown under most plots.
+
+This used to be a 3-component mixture with a "yellow" minor mode squeezed
+between red and green (weights 3/7, 1/7, 3/7) — the investigation into why
+that minor mode was badly underrepresented after reverse sampling is
+preserved below ("Closed investigation: the yellow bump"), and it's *why*
+yellow was ultimately dropped: a follow-up experiment with a plain 2-mode
+minority (no double-flanking) recovered almost perfectly, pointing at
+double-flanking rather than minority weight alone as the dominant cause.
+Simplifying to two modes removes that confound from the rest of the demo.
 
 ## Files, in the order they were built
 
@@ -81,8 +86,10 @@ back for the colored "hue strip" shown under most plots.
   `alpha_bar_t`). Then runs full ancestral sampling (Ho et al. Algorithm 2:
   start at `x_T ~ N(0,1)`, denoise down to `x_0`, injecting fresh noise at
   every step except the last) and compares the generated distribution
-  against the true `p(x0)`. Red/green recovered well; yellow (the minor
-  mode) is visibly underrepresented — see below.
+  against the true `p(x0)`. (Written and run against the original 3-mode
+  data, where it showed red/green recovered well but yellow visibly
+  underrepresented — see "Closed investigation: the yellow bump" below.
+  Still works unmodified against the current 2-mode data.)
 
 ## Interactive tools and reusable training
 
@@ -103,7 +110,7 @@ back for the colored "hue strip" shown under most plots.
   fresh rather than loading this checkpoint.
 - **`sample_viewer.py`** — press Enter to draw a fresh sample from `p(x0)`
   and see it as a colored square; a hands-on way to feel the true weights
-  (red/green common, yellow rare) instead of just reading a density curve.
+  (red twice as common as green) instead of just reading a density curve.
 - **`reverse_process_viewer.py`** — press Enter to draw a fresh
   `x_T ~ N(0,1)`, run it through the full trained reverse process, and see
   the noise input and denoised result side by side. Loads the saved
@@ -115,7 +122,15 @@ back for the colored "hue strip" shown under most plots.
   currently saved (e.g. after switching data distributions on a branch)
   without paying for another full training run.
 
-## Open investigation: the yellow bump is underrepresented
+## Closed investigation: the yellow bump
+
+**This investigation is closed and yellow has been dropped from the data**
+(see "The data" above) — kept here as a historical record of a real,
+hard-won debugging trail, and because the reasoning and ruled-out
+mechanisms are broadly applicable to any minority mode in a diffusion
+model, not just this toy example. Everything below refers to the original
+3-component data (red 3/7, yellow 1/7, green 3/7); it no longer describes
+the current `hue_gmm.py`.
 
 `train_multistep.py`'s reverse-sampled output systematically shorts the
 yellow component. Measured (20k samples, narrow window around each mode):
@@ -267,41 +282,23 @@ Leaked mass shows up mostly in green, not spread evenly.
    would need to decay the reweighting toward 1 as `t` grows, or weight by
    an estimate of `x_t`'s own local density instead of x0's.
 
-**Current status:** the investigation is well-characterized but not fully
-resolved. Ruled out: fixed-variance sampling, compounding over steps,
-schedule coarseness, and (most likely) a hard code bug. Confirmed
-structural: yellow's shortfall survives more training, more capacity, and
-a richer time embedding, and tracks a fixed per-batch sampling ratio rather
-than an easily-fixed approximation error. One legitimate mitigation
-attempt (naive density reweighting) made things worse rather than better.
+**Status before resolution:** fixed-variance sampling, compounding over
+steps, schedule coarseness, and (most likely) a hard code bug were all
+ruled out. Confirmed structural: yellow's shortfall survived more
+training, more capacity, and a richer time embedding, and tracked a fixed
+per-batch sampling ratio rather than an easily-fixed approximation error.
+One legitimate mitigation attempt (naive density reweighting) made things
+worse rather than better. See the resolution below for how this was
+ultimately settled.
 
-**Open next steps:**
-
-- Refine the reweighting idea to be `t`-dependent (decay weight strength
-  toward 1 as `t` increases, or base it on estimated `x_t` density rather
-  than x0's) rather than applying a single x0-based weight uniformly
-  across the whole schedule.
-- Track individual sample trajectories through the reverse chain (store
-  `x_t` at every step for a batch of samples) to see which `t` range is
-  where a trajectory's fate near yellow actually gets decided.
-
-## Branch: two-mode-red-green
-
-Local-only branch (not pushed) that drops yellow from `hue_gmm.py` entirely,
-leaving just two components: red weight 2/3, green weight 1/3 (means and
-stds unchanged from main -- `HUE_SHIFT=60` was already exactly the
-red/green midpoint, so it needed no change). Also updated the `REGIONS`
-basin-occupancy windows in `multistep_model.py`, `multiseed_check.py`, and
-`exact_reverse_multistep.py` to drop yellow's window. Added
-`plot_multistep_from_checkpoint.py` (see above) to get the comparison
-figure without paying for a full retrain each time.
-
-**Purpose:** isolate plain minority-weight underrepresentation from the
-"flanked on both sides" complication that made yellow hard to interpret on
-main -- does a minority mode still get shorted when it only has *one*
-neighbor instead of two?
-
-**Finding: no, it recovers almost perfectly.** Retrained the canonical
+**Resolution: dropping yellow, confirmed by a follow-up two-mode
+experiment.** Rather than continue chasing a structural bottleneck with
+diminishing returns, tested whether a minority mode is *inherently*
+underrepresented, or whether yellow's specific double-flanked position was
+the real culprit. Modified `hue_gmm.py` to drop yellow entirely, leaving
+just red (weight 2/3) and green (weight 1/3) -- a plain single-sided
+minority, no second neighbor. (`HUE_SHIFT=60` needed no change since it
+was already exactly the red/green midpoint.) Retrained the canonical
 multi-step model (hidden=192, sinusoidal time embedding, N_ITERS=60000) on
 this two-mode data and compared generated vs. true basin occupancy
 (20k samples):
@@ -311,20 +308,20 @@ this two-mode data and compared generated vs. true basin occupancy
 | red (2/3) | 0.6618 | 0.6535 |
 | green (1/3) | 0.3373 | 0.3368 |
 
-Green (the minority mode, same 1/3-ish weight scale as yellow's 1/7 was
-small) comes out essentially exact -- no meaningful shortfall, no
-red/green-style asymmetry either. This is a real contrast with yellow's
-26-44% shortfall on main under comparable training. Since minority weight
-alone clearly isn't sufficient to reproduce the problem, this is fairly
-strong evidence that yellow's specific disadvantage on main -- being
-squeezed between *two* heavier competitors at once, not just having low
-weight -- was the dominant mechanism, more than training-data imbalance in
+Green (the minority mode) comes out essentially exact -- no meaningful
+shortfall, no red/green-style asymmetry either. This is a sharp contrast
+with yellow's 26-44% shortfall under comparable training, and fairly
+strong evidence that yellow's specific disadvantage -- being squeezed
+between *two* heavier competitors at once, not just having low weight --
+was the dominant mechanism, more than training-data imbalance in
 isolation. (Training imbalance is still real and still matters -- finding
-#2 on main showed more training measurably helps -- but apparently it's
-not sufficient by itself to produce a shortfall this large without the
-double-flanking on top of it.)
+#2 showed more training measurably helps -- but apparently it's not
+sufficient by itself to produce a shortfall this large without the
+double-flanking on top of it.) On the strength of this result, yellow was
+removed from `hue_gmm.py` for the rest of the demo going forward.
 
-**Open next step on this branch:** try an *asymmetric* single-neighbor
-case with a more extreme ratio (e.g. 6:1 instead of 2:1) to see whether
-severe-enough single-sided imbalance alone can reproduce a yellow-sized
-shortfall, or whether double-flanking really does look necessary.
+**Possible future follow-up:** try an *asymmetric* single-neighbor case
+with a more extreme ratio (e.g. 6:1 instead of 2:1) to see whether
+severe-enough single-sided imbalance alone can eventually reproduce a
+yellow-sized shortfall, or whether double-flanking really is necessary
+regardless of how skewed a single-neighbor ratio gets.
