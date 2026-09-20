@@ -84,6 +84,26 @@ def joint_pdf_xt(x0, xt, alpha_bar_t, weights=WEIGHTS, means=MEANS, stds=STDS):
     return gmm_pdf(x0, weights, means, stds) * normal_pdf(xt, np.sqrt(alpha_bar_t) * x0, np.sqrt(1.0 - alpha_bar_t))
 
 
+def joint_pdf_adjacent(x_t, x_tp1, alpha_bar_t, alpha_tp1, weights=WEIGHTS, means=MEANS, stds=STDS):
+    """p(x_t, x_{t+1}) for two ADJACENT steps in the middle of the chain
+    (not a direct jump from x0): x_t's own marginal (itself a blurred GMM,
+    via marginal_xt_params) plays the role p(x0) plays in joint_pdf_xt, and
+    x_{t+1} is related to x_t by the single-step forward kernel with
+    alpha_{t+1} (not the cumulative alpha_bar)."""
+    prior_weights, prior_means, prior_stds = marginal_xt_params(alpha_bar_t, weights, means, stds)
+    return gmm_pdf(x_t, prior_weights, prior_means, prior_stds) * \
+        normal_pdf(x_tp1, np.sqrt(alpha_tp1) * x_t, np.sqrt(1.0 - alpha_tp1))
+
+
+def exact_conditional_mean_adjacent(v_array, alpha_bar_t, alpha_tp1, weights=WEIGHTS, means=MEANS, stds=STDS):
+    """Exact E[x_t | x_{t+1}=v] for two adjacent steps, by reusing
+    exact_conditional_mean_x0 with x_t's own marginal distribution as the
+    "prior" instead of p(x0), and alpha_{t+1} (single-step) instead of an
+    alpha_bar (cumulative)."""
+    prior_weights, prior_means, prior_stds = marginal_xt_params(alpha_bar_t, weights, means, stds)
+    return exact_conditional_mean_x0(v_array, alpha_tp1, prior_weights, prior_means, prior_stds)
+
+
 def posterior_mean_curve(x1_grid, beta1, weights=WEIGHTS, means=MEANS, stds=STDS):
     """E[x0 | x1=v] for each v in x1_grid: the density-weighted centroid of
     each horizontal slice through the joint distribution."""
