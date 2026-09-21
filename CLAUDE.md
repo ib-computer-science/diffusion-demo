@@ -146,6 +146,34 @@ Simplifying to two modes removes that confound from the rest of the demo.
   nearly-diagonal band rather than separated blobs -- individual steps
   deep in the schedule are close to identity maps, unlike the
   deliberately-exaggerated first step (beta1=0.005) in the original demo.
+- **`reverse_evolution_video.py`** — animates the reverse process itself:
+  one histogram frame per timestep (from x_T noise down to x_0), using the
+  full per-step trajectories from `reverse_sample_trajectory`, saved as
+  `output/reverse_evolution.mp4`. The one script needing more than NumPy +
+  Matplotlib (ffmpeg, a system binary, must be on PATH). Verified the
+  broad, nearly-flat middle-of-schedule frames against the exact forward
+  marginal (mean/std match within sampling noise) -- that flatness is
+  correct (modes are under 1 std apart by t=30), not a model deficiency.
+- **`single_trajectory_landscape.py`** — one sampled trajectory drawn as a
+  literal line over the evolving p(x_t) landscape (via
+  `marginal_xt_params`), illustrating the "guided random walk toward high
+  density" intuition directly: the trajectory wanders through an
+  undifferentiated blob for most of the schedule, then visibly commits to
+  one of the two lobes only once they separate late in the process. Each
+  time-slice is normalized to its own max (absolute density magnitude
+  varies ~10x across the schedule) so the shape stays visible everywhere;
+  y-axis auto-scales to the trajectory's actual range so early
+  high-variance steps aren't clipped.
+
+## Running everything
+
+`Makefile`'s default target (plain `make`) trains the canonical checkpoint
+(if stale) and then builds `reverse_evolution.mp4` and six figures:
+`learned_curve_on_joint`, `learned_curve_on_joint_adjacent`,
+`multistep_from_checkpoint`, `step0_forward_backward`, `trajectory_image`,
+`single_trajectory_landscape`. File-based prerequisites, so it skips
+anything already up to date. `make clean` removes `output/` and the
+checkpoint.
 
 ## Closed investigation: the yellow bump
 
