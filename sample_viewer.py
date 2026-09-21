@@ -31,16 +31,14 @@ def main():
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    x, hue, rgb = new_sample()
+    _, _, rgb = new_sample()
     square = Rectangle((0.1, 0.1), 0.8, 0.8, facecolor=rgb, edgecolor="black", linewidth=1.5)
     ax.add_patch(square)
-    title = ax.set_title(f"x={x:+.3f}    hue={hue:.1f} deg")
 
     def on_key(event):
         if event.key == "enter":
-            x, hue, rgb = new_sample()
+            _, _, rgb = new_sample()
             square.set_facecolor(rgb)
-            title.set_text(f"x={x:+.3f}    hue={hue:.1f} deg")
             fig.canvas.draw_idle()
 
     fig.canvas.mpl_connect("key_press_event", on_key)
