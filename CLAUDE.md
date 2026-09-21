@@ -41,11 +41,19 @@ Simplifying to two modes removes that confound from the rest of the demo.
   intermediate steps (x_t vs. x_{t+1}), not just x0 vs. x_t, by treating
   x_t's own marginal as the "prior" (see `learned_curve_on_joint_adjacent.py`).
 - **`step0_forward_backward.py`** — 4-panel figure: `p(x0)`, `q(x1)` after
-  one forward step, the exact reverse posterior for several example `x1`
-  values (showing genuine bimodality at ambiguous points), and the joint
-  distribution `p(x0,x1)` with the same example points marked — making
-  visible that the posterior panel is just a renormalized horizontal slice
-  of the joint panel.
+  one forward step, the joint distribution `p(x0,x1)` with example `x1`
+  points marked, and the exact reverse posterior for those same points
+  (showing genuine bimodality at ambiguous points) — making visible that
+  the posterior panel is just a renormalized horizontal slice of the joint
+  panel. `main(beta1=...)` is parameterized (default matches the original
+  demo value, same output filename) so the same figure can be regenerated
+  at other noise levels.
+- **`step0_forward_backward_large_noise.py`** — calls the above with a
+  deliberately too-large beta1=0.3: q(x1) merges into one broad hump, the
+  joint distribution's bands stretch out horizontally instead of forming
+  tight diagonal streaks, and all four example posteriors collapse toward
+  each other and toward p(x0) itself -- the beta1->1 limit from
+  `beta1_sweep.py`, shown directly instead of just quantitatively.
 - **`beta1_sweep.py`** — how beta1 controls the reverse posterior's shape:
   interpolates from a near-delta spike (beta1->0) to the full prior
   `p(x0)` (beta1->1), with posterior std and responsibility entropy
@@ -171,12 +179,13 @@ Simplifying to two modes removes that confound from the rest of the demo.
 ## Running everything
 
 `Makefile`'s default target (plain `make`) trains the canonical checkpoint
-(if stale) and then builds `reverse_evolution.mp4` and seven figures:
+(if stale) and then builds `reverse_evolution.mp4` and eight figures:
 `original_distribution`, `learned_curve_on_joint`,
 `learned_curve_on_joint_adjacent`, `multistep_from_checkpoint`,
-`step0_forward_backward`, `trajectory_image`, `single_trajectory_landscape`.
-File-based prerequisites, so it skips anything already up to date.
-`make clean` removes `output/` and the checkpoint.
+`step0_forward_backward`, `step0_forward_backward_beta0.3`,
+`trajectory_image`, `single_trajectory_landscape`. File-based
+prerequisites, so it skips anything already up to date. `make clean`
+removes `output/` and the checkpoint.
 
 ## Closed investigation: the yellow bump
 
