@@ -45,7 +45,7 @@ def main():
 
     trajectory = reverse_sample_trajectory(model, 1, rng)[:, 0]  # (T+1,)
 
-    lim = 0.7
+    lim = max(0.7, np.abs(trajectory).max() * 1.05)  # wide enough to show the whole path, no clipping
     x_grid = np.linspace(-lim, lim, 400)
     # alpha_bar at step k (k=0 -> t=T, k=T -> t=0): reverse of ALPHA_BARS, then append 1.0 for t=0
     alpha_bar_for_k = np.concatenate([ALPHA_BARS[::-1], [1.0]])
