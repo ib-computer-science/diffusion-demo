@@ -6,6 +6,7 @@ OUT := output
 .PHONY: all train clean
 
 all: train \
+     $(OUT)/original_distribution.png \
      $(OUT)/reverse_evolution.mp4 \
      $(OUT)/learned_curve_on_joint.png \
      $(OUT)/learned_curve_on_joint_adjacent.png \
@@ -15,6 +16,9 @@ all: train \
      $(OUT)/single_trajectory_landscape.png
 
 train: $(CHECKPOINT)
+
+$(OUT)/original_distribution.png: original_distribution.py hue_gmm.py
+	$(PYTHON) original_distribution.py
 
 $(CHECKPOINT): train_multistep_model.py multistep_model.py mlp.py hue_gmm.py schedule.py ddpm_step.py
 	$(PYTHON) train_multistep_model.py

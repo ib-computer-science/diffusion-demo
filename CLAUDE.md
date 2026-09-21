@@ -27,6 +27,9 @@ Simplifying to two modes removes that confound from the rest of the demo.
 ## Files, in the order they were built
 
 - **`hue_gmm.py`** — the GMM data distribution and hue/x/RGB conversions.
+- **`original_distribution.py`** — just `p(x0)` on its own, labeled and
+  with the hue strip, with none of `step0_forward_backward.py`'s other
+  panels.
 - **`ddpm_step.py`** — closed-form DDPM math: forward step, marginal
   `q(x_t)` for arbitrary `alpha_bar_t` (constant or scheduled beta),
   the exact reverse posterior `q(x0|x1=v)` via Bayes' rule, the joint
@@ -168,12 +171,12 @@ Simplifying to two modes removes that confound from the rest of the demo.
 ## Running everything
 
 `Makefile`'s default target (plain `make`) trains the canonical checkpoint
-(if stale) and then builds `reverse_evolution.mp4` and six figures:
-`learned_curve_on_joint`, `learned_curve_on_joint_adjacent`,
-`multistep_from_checkpoint`, `step0_forward_backward`, `trajectory_image`,
-`single_trajectory_landscape`. File-based prerequisites, so it skips
-anything already up to date. `make clean` removes `output/` and the
-checkpoint.
+(if stale) and then builds `reverse_evolution.mp4` and seven figures:
+`original_distribution`, `learned_curve_on_joint`,
+`learned_curve_on_joint_adjacent`, `multistep_from_checkpoint`,
+`step0_forward_backward`, `trajectory_image`, `single_trajectory_landscape`.
+File-based prerequisites, so it skips anything already up to date.
+`make clean` removes `output/` and the checkpoint.
 
 ## Closed investigation: the yellow bump
 
