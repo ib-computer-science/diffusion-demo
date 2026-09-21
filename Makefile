@@ -11,7 +11,8 @@ all: train \
      $(OUT)/learned_curve_on_joint_adjacent.png \
      $(OUT)/multistep_from_checkpoint.png \
      $(OUT)/step0_forward_backward.png \
-     $(OUT)/trajectory_image.png
+     $(OUT)/trajectory_image.png \
+     $(OUT)/single_trajectory_landscape.png
 
 train: $(CHECKPOINT)
 
@@ -35,6 +36,9 @@ $(OUT)/step0_forward_backward.png: step0_forward_backward.py ddpm_step.py hue_gm
 
 $(OUT)/trajectory_image.png: trajectory_image.py $(CHECKPOINT) multistep_model.py hue_gmm.py
 	$(PYTHON) trajectory_image.py
+
+$(OUT)/single_trajectory_landscape.png: single_trajectory_landscape.py $(CHECKPOINT) ddpm_step.py hue_gmm.py multistep_model.py schedule.py
+	$(PYTHON) single_trajectory_landscape.py
 
 clean:
 	rm -rf $(OUT) $(CHECKPOINT)
