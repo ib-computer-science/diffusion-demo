@@ -100,6 +100,7 @@ def main(beta1=BETA1, out_path=None):
     ax.set_ylim(-lim0, lim0)
     im = ax.imshow(joint, origin="lower", extent=[-lim1, lim1, -lim0, lim0], aspect="auto", cmap="viridis")
     hue_strip_vertical(ax, -lim1 - strip_w, -lim1)
+    ax.set_aspect("equal")
     for v, color in zip(example_vs, example_colors):
         ax.axvline(v, color=color, linewidth=1.2, linestyle="--")
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="density")

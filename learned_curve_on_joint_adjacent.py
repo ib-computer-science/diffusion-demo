@@ -66,6 +66,7 @@ def main():
     ax.set_ylim(-lim, lim)
     im = ax.imshow(joint, origin="lower", extent=[-lim, lim, -lim, lim], aspect="auto", cmap="viridis")
     hue_strip_vertical(ax, -lim - strip_w, -lim)
+    ax.set_aspect("equal")
 
     ax.plot(v_grid, exact_curve, color="white", linewidth=2.2, label=f"exact E[x{T_STEP} | x{T_STEP+1}=v]")
     ax.plot(v_grid, learned_curve, color="tab:orange", linewidth=2.0, linestyle="--",

@@ -64,6 +64,7 @@ def main():
         ax.set_ylim(-LIM - strip_h, LIM)
         ax.imshow(joint.T, origin="lower", extent=[-LIM, LIM, -LIM, LIM], aspect="auto", cmap="viridis")
         hue_strip(ax, -LIM - strip_h, -LIM)
+        ax.set_aspect("equal")
 
         ax.plot(exact_curve, v_grid, color="white", linewidth=2.0, label="exact E[x0|x_t]")
         ax.plot(learned_curve, v_grid, color="tab:orange", linewidth=1.8, linestyle="--", label="learned")
