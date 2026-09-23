@@ -54,6 +54,15 @@ Simplifying to two modes removes that confound from the rest of the demo.
   tight diagonal streaks, and all four example posteriors collapse toward
   each other and toward p(x0) itself -- the beta1->1 limit from
   `beta1_sweep.py`, shown directly instead of just quantitatively.
+- **`step0_x1_given_x0.py`** — same top two panels as
+  `step0_forward_backward.py`, but the bottom panels are mirrored: the
+  joint distribution `p(x0,x1)` is sliced *vertically* (by x0 instead of
+  x1), and panel 4 shows the forward conditional `q(x1|x0=u)` for the same
+  example points instead of the reverse posterior. Makes the contrast
+  concrete: `q(x1|x0=u)` is always a single Gaussian, for every choice of
+  u, unlike the reverse posterior's genuine bimodality at ambiguous
+  points — which is exactly why the forward step needs no Bayes' rule
+  (or learned approximation) while the reverse step does.
 - **`beta1_sweep.py`** — how beta1 controls the reverse posterior's shape:
   interpolates from a near-delta spike (beta1->0) to the full prior
   `p(x0)` (beta1->1), with posterior std and responsibility entropy
@@ -179,12 +188,12 @@ Simplifying to two modes removes that confound from the rest of the demo.
 ## Running everything
 
 `Makefile`'s default target (plain `make`) trains the canonical checkpoint
-(if stale) and then builds `reverse_evolution.mp4` and eight figures:
+(if stale) and then builds `reverse_evolution.mp4` and nine figures:
 `original_distribution`, `learned_curve_on_joint`,
 `learned_curve_on_joint_adjacent`, `multistep_from_checkpoint`,
 `step0_forward_backward`, `step0_forward_backward_beta0.3`,
-`trajectory_image`, `single_trajectory_landscape`. File-based
-prerequisites, so it skips anything already up to date. `make clean`
+`step0_x1_given_x0`, `trajectory_image`, `single_trajectory_landscape`.
+File-based prerequisites, so it skips anything already up to date. `make clean`
 removes `output/` and the checkpoint.
 
 ## Closed investigation: the yellow bump

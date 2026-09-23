@@ -13,6 +13,7 @@ all: train \
      $(OUT)/multistep_from_checkpoint.png \
      $(OUT)/step0_forward_backward.png \
      $(OUT)/step0_forward_backward_beta0.3.png \
+     $(OUT)/step0_x1_given_x0.png \
      $(OUT)/trajectory_image.png \
      $(OUT)/single_trajectory_landscape.png
 
@@ -41,6 +42,9 @@ $(OUT)/step0_forward_backward.png: step0_forward_backward.py ddpm_step.py hue_gm
 
 $(OUT)/step0_forward_backward_beta0.3.png: step0_forward_backward_large_noise.py step0_forward_backward.py ddpm_step.py hue_gmm.py
 	$(PYTHON) step0_forward_backward_large_noise.py
+
+$(OUT)/step0_x1_given_x0.png: step0_x1_given_x0.py ddpm_step.py hue_gmm.py
+	$(PYTHON) step0_x1_given_x0.py
 
 $(OUT)/trajectory_image.png: trajectory_image.py $(CHECKPOINT) multistep_model.py hue_gmm.py
 	$(PYTHON) trajectory_image.py
