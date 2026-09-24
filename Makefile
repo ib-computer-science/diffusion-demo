@@ -3,9 +3,9 @@ CHECKPOINT := checkpoints/multistep_model.npz
 OUT := output
 
 .DEFAULT_GOAL := all
-.PHONY: all train clean
+.PHONY: all train clean check-deps
 
-all: train \
+all: check-deps train \
      $(OUT)/original_distribution.png \
      $(OUT)/reverse_evolution.mp4 \
      $(OUT)/learned_curve_on_joint.png \
@@ -18,6 +18,16 @@ all: train \
      $(OUT)/single_trajectory_landscape.png
 
 train: $(CHECKPOINT)
+
+check-deps:
+	@$(PYTHON) -c "import tkinter" >/dev/null 2>&1 || { \
+		echo "ERROR: tkinter is not available for $(PYTHON)."; \
+		echo "  Required by the interactive viewers (sample_viewer.py, reverse_process_viewer.py) to open a display window."; \
+		echo "  Install it via your OS package manager (e.g. 'sudo dnf install python3-tkinter' on Fedora), then recreate the venv."; \
+		exit 1; \
+	}
+	@command -v ffmpeg >/dev/null 2>&1 || \
+		echo "WARNING: ffmpeg not found on PATH -- reverse_evolution_video.py (output/reverse_evolution.mp4) will fail."
 
 $(OUT)/original_distribution.png: original_distribution.py hue_gmm.py
 	$(PYTHON) original_distribution.py
