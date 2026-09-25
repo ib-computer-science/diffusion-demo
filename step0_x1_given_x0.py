@@ -2,9 +2,9 @@
 q(x1)), but the bottom panels now describe x1 directly in terms of x0
 instead of inverting via Bayes' rule.
 
-Panel 3 plots the same joint distribution p(x0, x1), but sliced the other
+Panel 4 plots the same joint distribution p(x0, x1), but sliced the other
 way: a VERTICAL slice at fixed x0=u, once renormalized, is exactly the
-forward conditional q(x1 | x0=u) shown in panel 4 for that u (mirroring
+forward conditional q(x1 | x0=u) shown in panel 3 for that u (mirroring
 how a horizontal slice in step0_forward_backward.py's panel 3 is exactly
 its reverse posterior q(x0 | x1=v)).
 
@@ -83,7 +83,7 @@ def main(beta1=BETA1, out_path=None):
     example_colors = [x_to_rgb(u) for u in example_us]
 
     # --- panel 3: joint distribution p(x0, x1), sliced vertically (by x0) ---
-    ax = axes[1, 0]
+    ax = axes[1, 1]
     lim0 = 0.6  # x0's own range never changes with beta1
     lim1 = plot_range  # x1's range does
     grid0 = np.linspace(-lim0, lim0, 400)
@@ -100,12 +100,13 @@ def main(beta1=BETA1, out_path=None):
     for u, color in zip(example_us, example_colors):
         ax.axvline(u, color=color, linewidth=1.2, linestyle="--")
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="density")
+    ax.set_anchor("C")  # fig.colorbar() re-anchors ax flush against the colorbar; recenter it
     ax.set_title("p(x0, x1): joint distribution (sliced by x0)")
     ax.set_xlabel("x0")
     ax.set_ylabel("x1")
 
     # --- panel 4: forward conditional q(x1 | x0=u) for several u ---
-    ax = axes[1, 1]
+    ax = axes[1, 0]
     ymax4 = 0.0
     for u, color in zip(example_us, example_colors):
         cond = normal_pdf(x_grid, np.sqrt(a1) * u, np.sqrt(beta1))
