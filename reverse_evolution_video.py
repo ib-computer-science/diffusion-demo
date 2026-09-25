@@ -27,7 +27,11 @@ from multistep_model import T, load_trained, reverse_sample_trajectory
 OUT_DIR = "output"
 N_SAMPLES = 20000
 X_GRID = np.linspace(-1.0, 1.0, 1000)
-BINS = np.linspace(-1.0, 1.0, 150)
+# x_T ~ N(0, 1), so +-1.0 (the data's own range) clips almost all of the
+# starting noise distribution; +-2.5 std covers most of it (and everything
+# in between) while keeping a fixed axis across the whole animation.
+X_RANGE = 2.5
+BINS = np.linspace(-X_RANGE, X_RANGE, 375)
 FPS = 12
 
 
@@ -55,7 +59,7 @@ def main():
         ax.hist(x0_true, bins=BINS, density=True, alpha=0.4, color="tab:blue", label="true p(x0)")
         ax.hist(trajectory[k], bins=BINS, density=True, alpha=0.6, color="tab:orange",
                 label=f"reverse samples (t={t})")
-        ax.set_xlim(-1.0, 1.0)
+        ax.set_xlim(-X_RANGE, X_RANGE)
         ax.set_ylim(-0.08 * ymax, ymax)
         hue_strip(ax, -0.08 * ymax, 0.0)
         ax.axhline(0.0, color="black", linewidth=0.8)
