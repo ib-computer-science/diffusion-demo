@@ -83,8 +83,8 @@ def main(beta1=BETA1, out_path=None):
     ax.legend(fontsize=8, loc="upper right")
 
     # --- compute exact reverse posterior curves (used by panels 3 and 4) ---
-    example_vs = [-1 / 3, -1 / 6, 1 / 6, 1 / 3]
-    example_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"][:len(example_vs)]
+    example_vs = [-1 / 3, 1 / 6]
+    example_colors = [x_to_rgb(v) for v in example_vs]
 
     # --- panel 3: joint distribution p(x0, x1) ---
     ax = axes[1, 0]
@@ -116,7 +116,6 @@ def main(beta1=BETA1, out_path=None):
         ymax4 = max(ymax4, post.max())
         ax.plot(x_grid, post, color=color, linewidth=1.3, label=f"v={v:+.3f}")
         ax.axvline(v, color=color, linewidth=0.8, linestyle=":")
-    ax.plot(x_grid, p0, color="gray", linewidth=1.0, linestyle="--", label="p(x0) (reference)")
     setup_axis(ax, "q(x0 | x1=v): exact reverse posterior", 1.05 * ymax4, plot_range)
     ax.legend(fontsize=7, loc="upper right", ncol=2)
 
