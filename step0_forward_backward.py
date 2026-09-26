@@ -68,7 +68,7 @@ def main(beta1=BETA1, out_path=None):
     ax = axes[0, 0]
     p0 = gmm_pdf(x_grid)
     ax.plot(x_grid, p0, color="black", linewidth=1.5)
-    setup_axis(ax, "p(x0): true hue distribution", 1.05 * p0.max(), plot_range)
+    setup_axis(ax, "p(x0): true hue distribution", 1.15 * p0.max(), plot_range)
     for mu, name in zip(MEANS, NAMES):
         ax.annotate(name, (mu, gmm_pdf(np.array([mu]))[0]), textcoords="offset points",
                     xytext=(0, 8), ha="center", fontsize=9)
@@ -79,7 +79,7 @@ def main(beta1=BETA1, out_path=None):
     q1 = (w1 * normal_pdf(x_grid[..., None], m1, s1)).sum(-1)
     ax.plot(x_grid, q1, color="black", linewidth=1.5)
     ax.plot(x_grid, p0, color="gray", linewidth=1.0, linestyle="--", label="p(x0) (reference)")
-    setup_axis(ax, f"q(x1): after one forward step (beta1={beta1:g})", 1.05 * max(p0.max(), q1.max()), plot_range)
+    setup_axis(ax, f"q(x1): after one forward step (beta1={beta1:g})", 1.15 * max(p0.max(), q1.max()), plot_range)
     ax.legend(fontsize=8, loc="upper right")
 
     # --- compute exact reverse posterior curves (used by panels 3 and 4) ---

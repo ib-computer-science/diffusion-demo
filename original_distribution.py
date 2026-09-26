@@ -28,7 +28,7 @@ def main():
     p0 = gmm_pdf(X_GRID)
     ax.plot(X_GRID, p0, color="black", linewidth=1.5)
 
-    ymax = 1.05 * p0.max()
+    ymax = 1.15 * p0.max()
     ax.set_xlim(-1.0, 1.0)
     ax.set_ylim(-0.08 * ymax, ymax)
     hue_strip(ax, -0.08 * ymax, 0.0)
