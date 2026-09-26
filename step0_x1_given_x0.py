@@ -2,18 +2,16 @@
 q(x1)), but the bottom panels now describe x1 directly in terms of x0
 instead of inverting via Bayes' rule.
 
-Panel 4 plots the same joint distribution p(x0, x1), but sliced the other
-way: a VERTICAL slice at fixed x0=u, once renormalized, is exactly the
-forward conditional q(x1 | x0=u) shown in panel 3 for that u (mirroring
-how a horizontal slice in step0_forward_backward.py's panel 3 is exactly
-its reverse posterior q(x0 | x1=v)).
-
-Unlike the reverse posterior -- which can be genuinely bimodal at
-ambiguous v, since several x0 could plausibly have produced it -- the
-forward conditional q(x1 | x0=u) is *always* a single Gaussian, for every
-choice of u. That contrast is the whole reason a single forward step is
-trivial to write down directly while the reverse step needs Bayes' rule
-(or, for real data, a learned approximation) at all.
+Panel 3 plots the joint distribution p(x0, x1), sliced VERTICALLY at fixed
+x0=u (dashed lines). Panel 4 plots that same vertical slice directly, as a
+curve over x1 -- q(x0=u, x1) = p(x0=u) * q(x1 | x0=u), the raw joint
+density along the slice, left unnormalized rather than divided down into a
+proper conditional density in x1. Dividing panel 4's curves by p(x0=u)
+would recover the forward conditional q(x1 | x0=u) (still a single
+Gaussian for every choice of u, unlike the reverse posterior's genuine
+bimodality at ambiguous points -- mirroring how a horizontal slice in
+step0_forward_backward.py's panel 3 becomes its reverse posterior panel 4
+once renormalized).
 
 main() takes beta1 as a parameter (default matches step0_forward_backward.py)
 so the same figure can be regenerated at other noise levels.
@@ -79,7 +77,7 @@ def main(beta1=BETA1, out_path=None):
     ax.legend(fontsize=8, loc="upper right")
 
     # --- example x0 values used by panels 3 and 4 ---
-    example_us = [-1 / 3, 1 / 6]
+    example_us = [-1 / 3, 0.25]
     example_colors = [x_to_rgb(u) for u in example_us]
 
     # --- panel 3: joint distribution p(x0, x1), sliced vertically (by x0) ---
@@ -105,15 +103,15 @@ def main(beta1=BETA1, out_path=None):
     ax.set_xlabel("x0")
     ax.set_ylabel("x1")
 
-    # --- panel 4: forward conditional q(x1 | x0=u) for several u ---
+    # --- panel 4: joint density along the vertical slice x0=u, q(x0=u, x1) ---
     ax = axes[1, 0]
     ymax4 = 0.0
     for u, color in zip(example_us, example_colors):
-        cond = normal_pdf(x_grid, np.sqrt(a1) * u, np.sqrt(beta1))
-        ymax4 = max(ymax4, cond.max())
-        ax.plot(x_grid, cond, color=color, linewidth=1.3, label=f"x0={u:+.3f}")
+        slice_ = joint_pdf(u, x_grid, beta1)
+        ymax4 = max(ymax4, slice_.max())
+        ax.plot(x_grid, slice_, color=color, linewidth=1.3, label=f"x0={u:+.3f}")
         ax.axvline(u, color=color, linewidth=0.8, linestyle=":")
-    setup_axis(ax, "q(x1 | x0=u): forward conditional -- always unimodal", 1.05 * ymax4, plot_range)
+    setup_axis(ax, "q(x0=u, x1): joint density along the vertical slice (unnormalized)", 1.05 * ymax4, plot_range)
     ax.legend(fontsize=7, loc="upper right", ncol=2)
 
     fig.suptitle(f"One DDPM step on 1D hue data (beta1={beta1:g}): x1 expressed directly in terms of x0",

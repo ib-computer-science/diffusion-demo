@@ -57,12 +57,18 @@ Simplifying to two modes removes that confound from the rest of the demo.
 - **`step0_x1_given_x0.py`** — same top two panels as
   `step0_forward_backward.py`, but the bottom panels are mirrored: the
   joint distribution `p(x0,x1)` is sliced *vertically* (by x0 instead of
-  x1), and panel 4 shows the forward conditional `q(x1|x0=u)` for the same
-  example points instead of the reverse posterior. Makes the contrast
-  concrete: `q(x1|x0=u)` is always a single Gaussian, for every choice of
+  x1), and panel 4 plots that same vertical slice directly as a curve over
+  x1, `q(x0=u, x1) = p(x0=u) * q(x1|x0=u)` — the raw joint density along
+  the slice, left unnormalized rather than divided down into a proper
+  conditional density (dividing by `p(x0=u)` would recover the forward
+  conditional `q(x1|x0=u)`, always a single Gaussian for every choice of
   u, unlike the reverse posterior's genuine bimodality at ambiguous
   points — which is exactly why the forward step needs no Bayes' rule
-  (or learned approximation) while the reverse step does.
+  (or learned approximation) while the reverse step does). Because the
+  slice is left unnormalized, its peak height also reflects `p(x0=u)`
+  itself, so example points at less-likely x0 values produce a visibly
+  smaller curve even though their normalized conditional would look the
+  same width.
 - **`beta1_sweep.py`** — how beta1 controls the reverse posterior's shape:
   interpolates from a near-delta spike (beta1->0) to the full prior
   `p(x0)` (beta1->1), with posterior std and responsibility entropy
