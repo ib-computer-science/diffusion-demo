@@ -46,15 +46,14 @@ def main():
     image = trajectories_to_rgb(trajectory)
 
     fig, ax = plt.subplots(figsize=(12, 12 * T / N_SAMPLES + 1.2))
-    # extent's y-range is (T, 0), not (0, T): row 0 of the array (x_T, noise)
-    # is drawn at the bottom via origin="lower", and this makes the axis
-    # ticks read "T" there and "0" at the top, matching that directly,
-    # instead of mislabeling the bottom as t=0 just because it's the first
-    # array row.
+    # Row 0 of the array (x_T, noise) is the first reverse step taken, drawn
+    # at the bottom via origin="lower"; row T (x_0, generated) is the last,
+    # drawn at the top. So the y-axis is the reverse-step count, increasing
+    # bottom-to-top, not the diffusion timestep t (which runs the other way).
     ax.imshow(image, origin="lower", aspect="equal", interpolation="nearest",
-              extent=[0, N_SAMPLES, T, 0])
+              extent=[0, N_SAMPLES, 0, T])
     ax.set_xlabel("sample index (sorted by final x0)")
-    ax.set_ylabel("t  (bottom=T, noise -> top=0, generated)")
+    ax.set_ylabel("reverse step  (bottom=0, x_T noise -> top=T, generated)")
     ax.set_title(f"{N_SAMPLES} reverse-diffusion trajectories, colored by hue, sorted by outcome")
 
     fig.tight_layout()
