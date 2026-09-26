@@ -60,14 +60,14 @@ def main():
     hue_strip_vertical(ax, -lim - strip_w, -lim)
     ax.set_aspect("equal")
 
-    ax.plot(v_grid, exact_curve, color="white", linewidth=2.2, label="exact E[x0 | x1=v]")
+    ax.plot(v_grid, exact_curve, color="white", linewidth=2.2, label=r"exact $E[x_0 \mid x_1=v]$")
     ax.plot(v_grid, learned_curve, color="tab:orange", linewidth=2.0, linestyle="--",
             label="learned (from trained MLP)")
 
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="density")
-    ax.set_xlabel("x1")
-    ax.set_ylabel("x0")
-    ax.set_title("What the MLP learns: a curve through p(x0, x1)")
+    ax.set_xlabel(r"$x_1$")
+    ax.set_ylabel(r"$x_0$")
+    ax.set_title(r"What the MLP learns: a curve through $p(x_0, x_1)$")
     ax.legend(fontsize=9, loc="upper left")
 
     fig.tight_layout()

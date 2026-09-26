@@ -47,7 +47,7 @@ def plot_schedule(ax, betas, title):
         curves.append((t, pdf))
 
     for t, pdf in curves:
-        label = "p(x0)" if t == 0 else f"q(x{t})"
+        label = r"$p(x_0)$" if t == 0 else rf"$q(x_{t})$"
         ax.plot(X_GRID, pdf, linewidth=1.8, label=label)
 
     ax.set_xlim(-1.0, 1.0)
@@ -63,11 +63,11 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 
-    plot_schedule(axes[0], CONSTANT_BETAS, f"Constant beta = {CONSTANT_BETAS[0]} at every step")
+    plot_schedule(axes[0], CONSTANT_BETAS, rf"Constant $\beta$ = {CONSTANT_BETAS[0]} at every step")
     plot_schedule(axes[1], INCREASING_BETAS,
-                  f"Increasing beta: {INCREASING_BETAS[0]:.3f} -> {INCREASING_BETAS[-1]:.3f}")
+                  rf"Increasing $\beta$: {INCREASING_BETAS[0]:.3f} -> {INCREASING_BETAS[-1]:.3f}")
 
-    fig.suptitle("Forward process over 4 steps: constant vs. increasing beta schedule", fontsize=13)
+    fig.suptitle(r"Forward process over 4 steps: constant vs. increasing $\beta$ schedule", fontsize=13)
     fig.tight_layout(rect=[0, 0, 1, 0.94])
     out_path = os.path.join(OUT_DIR, "schedule_comparison.png")
     fig.savefig(out_path, dpi=150)

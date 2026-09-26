@@ -77,16 +77,16 @@ def main():
 
     fig, ax = plt.subplots(figsize=(8, 5.5))
     bins = np.linspace(-1.0, 1.0, 150)
-    ax.hist(x0_true, bins=bins, density=True, alpha=0.5, label="original p(x0)", color="tab:blue")
+    ax.hist(x0_true, bins=bins, density=True, alpha=0.5, label=r"original $p(x_0)$", color="tab:blue")
     ax.hist(x0_gen, bins=bins, density=True, alpha=0.5,
-            label="reverse-sampled (exact mean, fixed variance=beta_t)", color="tab:orange")
+            label=r"reverse-sampled (exact mean, fixed variance=$\beta_t$)", color="tab:orange")
     ymax = max(gmm_pdf(X_GRID).max(), 1.0) * 1.1
     ax.set_xlim(-1.0, 1.0)
     ax.set_ylim(-0.08 * ymax, ymax)
     hue_strip(ax, -0.08 * ymax, 0.0)
     ax.axhline(0.0, color="black", linewidth=0.8)
-    ax.set_xlabel("x0")
-    ax.set_title(f"Oracle-mean ancestral sampling ({T} steps, fixed variance = beta_t)")
+    ax.set_xlabel(r"$x_0$")
+    ax.set_title(rf"Oracle-mean ancestral sampling ({T} steps, fixed variance = $\beta_t$)")
     ax.legend(fontsize=8)
     fig.tight_layout()
 

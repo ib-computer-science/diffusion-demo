@@ -42,7 +42,7 @@ def main():
         ax.add_patch(Rectangle((col, row), 1, 1, facecolor=x_to_rgb(float(x)),
                                 edgecolor="black", linewidth=0.5))
 
-    fig.suptitle(f"{n} samples from p(x0)", fontsize=10)
+    fig.suptitle(rf"{n} samples from $p(x_0)$", fontsize=10)
     fig.tight_layout()
     out_path = os.path.join(OUT_DIR, "sample_grid.png")
     fig.savefig(out_path, dpi=150)

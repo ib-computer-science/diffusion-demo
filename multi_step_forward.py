@@ -48,7 +48,7 @@ def main():
         curves.append((t, pdf))
 
     for t, pdf in curves:
-        label = "p(x0): data" if t == 0 else f"q(x{t}): after {t} step{'s' if t > 1 else ''}"
+        label = r"$p(x_0)$: data" if t == 0 else rf"$q(x_{t})$: after {t} step{'s' if t > 1 else ''}"
         ax.plot(X_GRID, pdf, linewidth=1.8, label=label)
 
     ax.set_xlim(-1.0, 1.0)
@@ -56,7 +56,7 @@ def main():
     hue_strip(ax, -0.08 * ymax, 0.0)
     ax.axhline(0.0, color="black", linewidth=0.8)
     ax.set_xlabel("x")
-    ax.set_title(f"Forward process: q(x_t) for t=0..4 (beta1={BETA1} per step)")
+    ax.set_title(rf"Forward process: $q(x_t)$ for $t$=0..4 ($\beta_1$={BETA1} per step)")
     ax.legend(fontsize=9)
 
     fig.tight_layout()

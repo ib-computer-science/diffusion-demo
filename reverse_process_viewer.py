@@ -60,16 +60,16 @@ def main():
     sq_denoised = Rectangle((0.1, 0.1), 0.8, 0.8, facecolor=x_to_rgb(x0), edgecolor="black", linewidth=1.5)
     ax_noise.add_patch(sq_noise)
     ax_denoised.add_patch(sq_denoised)
-    title_noise = ax_noise.set_title(f"x_T={x_T:+.3f}  (noise)")
-    title_denoised = ax_denoised.set_title(f"x_0={x0:+.3f}  hue={x_to_hue(x0):.1f} deg")
+    title_noise = ax_noise.set_title(rf"$x_T$={x_T:+.3f}  (noise)")
+    title_denoised = ax_denoised.set_title(rf"$x_0$={x0:+.3f}  hue={x_to_hue(x0):.1f} deg")
 
     def on_key(event):
         if event.key == "enter":
             x_T, x0 = new_pair(model)
             sq_noise.set_facecolor(x_to_rgb(x_T))
             sq_denoised.set_facecolor(x_to_rgb(x0))
-            title_noise.set_text(f"x_T={x_T:+.3f}  (noise)")
-            title_denoised.set_text(f"x_0={x0:+.3f}  hue={x_to_hue(x0):.1f} deg")
+            title_noise.set_text(rf"$x_T$={x_T:+.3f}  (noise)")
+            title_denoised.set_text(rf"$x_0$={x0:+.3f}  hue={x_to_hue(x0):.1f} deg")
             fig.canvas.draw_idle()
 
     fig.canvas.mpl_connect("key_press_event", on_key)

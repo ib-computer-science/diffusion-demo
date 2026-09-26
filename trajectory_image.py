@@ -52,8 +52,8 @@ def main():
     # bottom-to-top, not the diffusion timestep t (which runs the other way).
     ax.imshow(image, origin="lower", aspect="equal", interpolation="nearest",
               extent=[0, N_SAMPLES, 0, T])
-    ax.set_xlabel("sample index (sorted by final x0)")
-    ax.set_ylabel("reverse step  (bottom=0, x_T noise -> top=T, generated)")
+    ax.set_xlabel(r"sample index (sorted by final $x_0$)")
+    ax.set_ylabel(r"reverse step  (bottom=0, $x_T$ noise -> top=T, generated)")
     ax.set_title(f"{N_SAMPLES} reverse-diffusion trajectories, colored by hue, sorted by outcome")
 
     fig.tight_layout()

@@ -41,14 +41,14 @@ def main():
     # --- panel 1: posterior shape across beta1, at fixed ambiguous v ---
     ax = axes[0]
     p0 = gmm_pdf(X_GRID)
-    ax.plot(X_GRID, p0, color="gray", linestyle="--", linewidth=1.2, label="p(x0) (beta1->1 limit)")
+    ax.plot(X_GRID, p0, color="gray", linestyle="--", linewidth=1.2, label=r"$p(x_0)$ ($\beta_1 \to 1$ limit)")
     for beta1 in BETAS:
         post = posterior_pdf(X_GRID, V, beta1)
-        ax.plot(X_GRID, post, linewidth=1.5, label=f"beta1={beta1}")
-    ax.axvline(V, color="black", linewidth=0.8, linestyle=":", label=f"v={V:.3f}")
+        ax.plot(X_GRID, post, linewidth=1.5, label=rf"$\beta_1$={beta1}")
+    ax.axvline(V, color="black", linewidth=0.8, linestyle=":", label=rf"$v$={V:.3f}")
     ax.set_xlim(-0.8, 0.8)
-    ax.set_title(f"q(x0 | x1={V:.3f}) as beta1 varies")
-    ax.set_xlabel("x0")
+    ax.set_title(rf"$q(x_0 \mid x_1={V:.3f})$ as $\beta_1$ varies")
+    ax.set_xlabel(r"$x_0$")
     ax.legend(fontsize=7, loc="upper left")
 
     # --- panel 2: quantitative trend vs beta1 ---
@@ -61,23 +61,23 @@ def main():
     ax2 = axes[1]
     ax2.plot(beta_grid, post_stds, color="tab:blue", label="posterior std (per component)")
     ax2.axhline(PRIOR_STD, color="tab:blue", linestyle=":", linewidth=1,
-                label="prior std (beta1->1 limit)")
+                label=r"prior std ($\beta_1 \to 1$ limit)")
     ax2.set_xscale("log")
-    ax2.set_xlabel("beta1 (log scale)")
+    ax2.set_xlabel(r"$\beta_1$ (log scale)")
     ax2.set_ylabel("posterior std", color="tab:blue")
     ax2.tick_params(axis="y", labelcolor="tab:blue")
 
     ax3 = ax2.twinx()
-    ax3.plot(beta_grid, entropies, color="tab:red", label=f"responsibility entropy at v={V:.3f}")
+    ax3.plot(beta_grid, entropies, color="tab:red", label=rf"responsibility entropy at $v$={V:.3f}")
     ax3.axhline(PRIOR_ENTROPY, color="tab:red", linestyle=":", linewidth=1,
-                label="entropy of prior weights (beta1->1 limit)")
+                label=r"entropy of prior weights ($\beta_1 \to 1$ limit)")
     ax3.set_ylabel("responsibility entropy (nats)", color="tab:red")
     ax3.tick_params(axis="y", labelcolor="tab:red")
 
     lines1, labels1 = ax2.get_legend_handles_labels()
     lines2, labels2 = ax3.get_legend_handles_labels()
     ax2.legend(lines1 + lines2, labels1 + labels2, fontsize=7, loc="lower right")
-    ax2.set_title("Posterior sharpness vs beta1: spike -> prior")
+    ax2.set_title(r"Posterior sharpness vs $\beta_1$: spike -> prior")
 
     fig.tight_layout()
     out_path = os.path.join(OUT_DIR, "beta1_sweep.png")

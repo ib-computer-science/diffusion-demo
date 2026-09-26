@@ -83,10 +83,10 @@ def main():
     ax_loss = fig.add_subplot(gs[0, :])
     ax_loss.plot(losses, linewidth=0.8, color="tab:green")
     ax_loss.axhline(1.0, color="gray", linestyle="--", linewidth=1,
-                     label="loss=1.0 (blindly predicting eps=0 everywhere)")
+                     label=r"loss=1.0 (blindly predicting $\epsilon$=0 everywhere)")
     ax_loss.set_yscale("log")
     ax_loss.set_xlabel("training iteration")
-    ax_loss.set_ylabel("MSE(eps_hat, eps)")
+    ax_loss.set_ylabel(r"MSE($\hat\epsilon$, $\epsilon$)")
     ax_loss.set_title("Learning curve: noise-prediction loss (fresh samples each iteration)")
     ax_loss.legend(fontsize=8)
 
@@ -98,15 +98,15 @@ def main():
         learned_post = normal_pdf(X_GRID, x0_hat, sigma)
         ymax = max(true_post.max(), learned_post.max(), p0.max()) * 1.15
 
-        ax.plot(X_GRID, p0, color="gray", linestyle=":", linewidth=1, label="p(x0)")
-        ax.plot(X_GRID, true_post, color="tab:blue", linewidth=1.8, label="exact q(x0|x1=v)")
+        ax.plot(X_GRID, p0, color="gray", linestyle=":", linewidth=1, label=r"$p(x_0)$")
+        ax.plot(X_GRID, true_post, color="tab:blue", linewidth=1.8, label=r"exact $q(x_0 \mid x_1=v)$")
         ax.plot(X_GRID, learned_post, color="tab:orange", linewidth=1.8, linestyle="--",
-                label="learned q_theta(x0|x1=v)")
+                label=r"learned $q_\theta(x_0 \mid x_1=v)$")
         ax.axvline(v, color="black", linewidth=0.7, linestyle=":")
         ax.set_xlim(-0.7, 0.7)
         ax.set_ylim(-0.08 * ymax, ymax)
         hue_strip(ax, -0.08 * ymax, 0.0)
-        ax.set_title(f"v={v:+.3f}", fontsize=10)
+        ax.set_title(rf"$v$={v:+.3f}", fontsize=10)
         if i == 0:
             ax.legend(fontsize=6, loc="upper left")
 

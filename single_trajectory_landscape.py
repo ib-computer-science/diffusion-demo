@@ -72,11 +72,11 @@ def main():
 
     k_grid = np.arange(T + 1)
     ax.plot(k_grid, trajectory, color="white", linewidth=1.6, zorder=3)
-    ax.scatter([0], [trajectory[0]], color="white", edgecolor="black", s=50, zorder=4, label="x_T (start)")
+    ax.scatter([0], [trajectory[0]], color="white", edgecolor="black", s=50, zorder=4, label=r"$x_T$ (start)")
     ax.scatter([T], [trajectory[-1]], color=x_to_rgb(trajectory[-1]), edgecolor="black", s=90, zorder=4,
-               label="x_0 (generated)")
+               label=r"$x_0$ (generated)")
 
-    ax.set_xlabel("reverse step k  (k=0: x_T noise  ->  k=T: x_0 generated)")
+    ax.set_xlabel(r"reverse step $k$  ($k$=0: $x_T$ noise  ->  $k$=T: $x_0$ generated)")
     ax.set_ylabel("x")
     ax.set_title("One reverse-diffusion trajectory through the evolving density landscape")
     ax.legend(fontsize=9, loc="upper left")

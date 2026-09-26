@@ -62,7 +62,7 @@ def main(beta1=BETA1, out_path=None):
     ax = axes[0, 0]
     p0 = gmm_pdf(x_grid)
     ax.plot(x_grid, p0, color="black", linewidth=1.5)
-    setup_axis(ax, "p(x0): true hue distribution", 1.15 * p0.max(), plot_range)
+    setup_axis(ax, r"$p(x_0)$: true hue distribution", 1.15 * p0.max(), plot_range)
     for mu, name in zip(MEANS, NAMES):
         ax.annotate(name, (mu, gmm_pdf(np.array([mu]))[0]), textcoords="offset points",
                     xytext=(0, 8), ha="center", fontsize=9)
@@ -72,8 +72,8 @@ def main(beta1=BETA1, out_path=None):
     w1, m1, s1 = marginal_x1_params(beta1)
     q1 = (w1 * normal_pdf(x_grid[..., None], m1, s1)).sum(-1)
     ax.plot(x_grid, q1, color="black", linewidth=1.5)
-    ax.plot(x_grid, p0, color="gray", linewidth=1.0, linestyle="--", label="p(x0) (reference)")
-    setup_axis(ax, f"q(x1): after one forward step (beta1={beta1:g})", 1.15 * max(p0.max(), q1.max()), plot_range)
+    ax.plot(x_grid, p0, color="gray", linewidth=1.0, linestyle="--", label=r"$p(x_0)$ (reference)")
+    setup_axis(ax, rf"$q(x_1)$: after one forward step ($\beta_1$={beta1:g})", 1.15 * max(p0.max(), q1.max()), plot_range)
     ax.legend(fontsize=8, loc="upper right")
 
     # --- example x0 values used by panels 3 and 4 ---
@@ -99,9 +99,9 @@ def main(beta1=BETA1, out_path=None):
         ax.axvline(u, color=color, linewidth=1.2, linestyle="--")
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="density")
     ax.set_anchor("C")  # fig.colorbar() re-anchors ax flush against the colorbar; recenter it
-    ax.set_title("p(x0, x1): joint distribution (sliced by x0)")
-    ax.set_xlabel("x0")
-    ax.set_ylabel("x1")
+    ax.set_title(r"$p(x_0, x_1)$: joint distribution (sliced by $x_0$)")
+    ax.set_xlabel(r"$x_0$")
+    ax.set_ylabel(r"$x_1$")
 
     # --- panel 4: joint density along the vertical slice x0=u, q(x0=u, x1) ---
     ax = axes[1, 0]
@@ -109,12 +109,12 @@ def main(beta1=BETA1, out_path=None):
     for u, color in zip(example_us, example_colors):
         slice_ = joint_pdf(u, x_grid, beta1)
         ymax4 = max(ymax4, slice_.max())
-        ax.plot(x_grid, slice_, color=color, linewidth=1.3, label=f"x0={u:+.3f}")
+        ax.plot(x_grid, slice_, color=color, linewidth=1.3, label=rf"$x_0$={u:+.3f}")
         ax.axvline(u, color=color, linewidth=0.8, linestyle=":")
-    setup_axis(ax, "q(x0=u, x1): joint density along the vertical slice (unnormalized)", 1.05 * ymax4, plot_range)
+    setup_axis(ax, r"$q(x_0=u, x_1)$: joint density along the vertical slice (unnormalized)", 1.05 * ymax4, plot_range)
     ax.legend(fontsize=7, loc="upper right", ncol=2)
 
-    fig.suptitle(f"One DDPM step on 1D hue data (beta1={beta1:g}): x1 expressed directly in terms of x0",
+    fig.suptitle(rf"One DDPM step on 1D hue data ($\beta_1$={beta1:g}): $x_1$ expressed directly in terms of $x_0$",
                  fontsize=13)
     fig.tight_layout(rect=[0, 0, 1, 0.96])
 

@@ -44,7 +44,7 @@ def main():
         curves.append((t, pdf))
 
     for t, pdf in curves:
-        label = "p(x0)" if t == 0 else f"q(x{t})  (alpha_bar={alpha_bars[t - 1]:.3f})"
+        label = r"$p(x_0)$" if t == 0 else rf"$q(x_{t})$  ($\bar\alpha$={alpha_bars[t - 1]:.3f})"
         ax.plot(X_GRID, pdf, linewidth=1.8, label=label)
 
     ax.set_xlim(-1.0, 1.0)
@@ -52,7 +52,7 @@ def main():
     hue_strip(ax, -0.08 * ymax, 0.0)
     ax.axhline(0.0, color="black", linewidth=0.8)
     ax.set_xlabel("x")
-    ax.set_title(f"Forward process, increasing schedule (beta: {BETAS[0]:.3f} -> {BETAS[-1]:.3f}, T={T})")
+    ax.set_title(rf"Forward process, increasing schedule ($\beta$: {BETAS[0]:.3f} -> {BETAS[-1]:.3f}, $T$={T})")
     ax.legend(fontsize=9)
 
     fig.tight_layout()

@@ -68,14 +68,15 @@ def main():
     hue_strip_vertical(ax, -lim - strip_w, -lim)
     ax.set_aspect("equal")
 
-    ax.plot(v_grid, exact_curve, color="white", linewidth=2.2, label=f"exact E[x{T_STEP} | x{T_STEP+1}=v]")
+    ax.plot(v_grid, exact_curve, color="white", linewidth=2.2,
+            label=rf"exact $E[x_{{{T_STEP}}} \mid x_{{{T_STEP + 1}}}=v]$")
     ax.plot(v_grid, learned_curve, color="tab:orange", linewidth=2.0, linestyle="--",
             label="learned (from checkpoint)")
 
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="density")
-    ax.set_xlabel(f"x{T_STEP+1}")
-    ax.set_ylabel(f"x{T_STEP}")
-    ax.set_title(f"Adjacent-step reverse: x{T_STEP+1} -> x{T_STEP} (alpha_bar_{T_STEP}={alpha_bar_t:.3f})")
+    ax.set_xlabel(rf"$x_{{{T_STEP + 1}}}$")
+    ax.set_ylabel(rf"$x_{{{T_STEP}}}$")
+    ax.set_title(rf"Adjacent-step reverse: $x_{{{T_STEP + 1}}} \to x_{{{T_STEP}}}$ ($\bar\alpha_{{{T_STEP}}}$={alpha_bar_t:.3f})")
     ax.legend(fontsize=9, loc="upper left")
 
     fig.tight_layout()

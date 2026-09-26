@@ -103,12 +103,12 @@ def main():
     ax.plot(losses, linewidth=0.5, color="tab:green")
     ax.set_yscale("log")
     ax.set_xlabel("training iteration")
-    ax.set_ylabel("MSE(eps_hat, eps)")
+    ax.set_ylabel(r"MSE($\hat\epsilon$, $\epsilon$)")
     ax.set_title("Multi-step training loss (random t each iteration)")
 
     ax = axes[1]
     bins = np.linspace(-1.0, 1.0, 150)
-    ax.hist(x0_true, bins=bins, density=True, alpha=0.5, label="original p(x0)", color="tab:blue")
+    ax.hist(x0_true, bins=bins, density=True, alpha=0.5, label=r"original $p(x_0)$", color="tab:blue")
     ax.hist(x0_generated, bins=bins, density=True, alpha=0.5,
             label="reverse-sampled (learned model)", color="tab:orange")
     ymax = max(gmm_pdf(X_GRID).max(), 1.0) * 1.1
@@ -116,7 +116,7 @@ def main():
     ax.set_ylim(-0.08 * ymax, ymax)
     hue_strip(ax, -0.08 * ymax, 0.0)
     ax.axhline(0.0, color="black", linewidth=0.8)
-    ax.set_xlabel("x0")
+    ax.set_xlabel(r"$x_0$")
     ax.set_title(f"Original vs. reverse-sampled ({T}-step ancestral sampling)")
     ax.legend(fontsize=8)
 

@@ -56,15 +56,15 @@ def main():
     def draw_frame(k):
         ax.clear()
         t = T - k  # trajectory[k] corresponds to diffusion time T-k
-        ax.hist(x0_true, bins=BINS, density=True, alpha=0.4, color="tab:blue", label="true p(x0)")
+        ax.hist(x0_true, bins=BINS, density=True, alpha=0.4, color="tab:blue", label=r"true $p(x_0)$")
         ax.hist(trajectory[k], bins=BINS, density=True, alpha=0.6, color="tab:orange",
-                label=f"reverse samples (t={t})")
+                label=rf"reverse samples ($t$={t})")
         ax.set_xlim(-X_RANGE, X_RANGE)
         ax.set_ylim(-0.08 * ymax, ymax)
         hue_strip(ax, -0.08 * ymax, 0.0)
         ax.axhline(0.0, color="black", linewidth=0.8)
         ax.set_xlabel("x")
-        ax.set_title(f"Reverse process evolution: t={t} / {T}")
+        ax.set_title(rf"Reverse process evolution: $t$={t} / {T}")
         ax.legend(fontsize=8, loc="upper right")
 
     print(f"rendering {T + 1} frames...")

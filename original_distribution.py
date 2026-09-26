@@ -40,7 +40,7 @@ def main():
 
     ax.set_xlabel("x")
     ax.set_ylabel("density")
-    ax.set_title("p(x0): the original data distribution")
+    ax.set_title(r"$p(x_0)$: the original data distribution")
 
     fig.tight_layout()
     out_path = os.path.join(OUT_DIR, "original_distribution.png")
