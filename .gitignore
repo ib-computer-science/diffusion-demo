@@ -8,7 +8,7 @@ output/*
 !output/trajectory_image.png
 !output/reverse_evolution.mp4
 !output/step0_x1_given_x0.png
-!output/step0_forward_backward.png
+!output/step0_backward.png
 !output/step0_forward_backward_beta0.3.png
 !output/learned_curve_on_joint.png
 !output/learned_curve_on_joint_adjacent.png

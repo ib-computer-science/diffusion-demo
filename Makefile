@@ -11,7 +11,7 @@ all: check-deps train \
      $(OUT)/learned_curve_on_joint.png \
      $(OUT)/learned_curve_on_joint_adjacent.png \
      $(OUT)/multistep_from_checkpoint.png \
-     $(OUT)/step0_forward_backward.png \
+     $(OUT)/step0_backward.png \
      $(OUT)/step0_forward_backward_beta0.3.png \
      $(OUT)/step0_x1_given_x0.png \
      $(OUT)/trajectory_image.png \
@@ -48,10 +48,10 @@ $(OUT)/learned_curve_on_joint_adjacent.png: learned_curve_on_joint_adjacent.py $
 $(OUT)/multistep_from_checkpoint.png: plot_multistep_from_checkpoint.py $(CHECKPOINT) multistep_model.py hue_gmm.py
 	$(PYTHON) plot_multistep_from_checkpoint.py
 
-$(OUT)/step0_forward_backward.png: step0_forward_backward.py ddpm_step.py hue_gmm.py
-	$(PYTHON) step0_forward_backward.py
+$(OUT)/step0_backward.png: step0_backward.py ddpm_step.py hue_gmm.py
+	$(PYTHON) step0_backward.py
 
-$(OUT)/step0_forward_backward_beta0.3.png: step0_forward_backward_large_noise.py step0_forward_backward.py ddpm_step.py hue_gmm.py
+$(OUT)/step0_forward_backward_beta0.3.png: step0_forward_backward_large_noise.py step0_backward.py ddpm_step.py hue_gmm.py
 	$(PYTHON) step0_forward_backward_large_noise.py
 
 $(OUT)/step0_x1_given_x0.png: step0_x1_given_x0.py ddpm_step.py hue_gmm.py

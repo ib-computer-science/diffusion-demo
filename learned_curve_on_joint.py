@@ -6,7 +6,7 @@ linear reparameterization of E[x0 | x1=v] -- the density-weighted centroid
 of each horizontal slice through the joint distribution (see
 ddpm_step.posterior_mean_curve). This script overlays that exact curve, and
 the curve implied by the trained MLP, directly on the joint-density heatmap
-from step0_forward_backward.py, to show precisely what training recovers
+from step0_backward.py, to show precisely what training recovers
 and where it's forced to cut through low-density gaps between hue bumps.
 
 x1 is plotted horizontally and x0 vertically, matching how the curve is

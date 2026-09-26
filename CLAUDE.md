@@ -28,7 +28,7 @@ Simplifying to two modes removes that confound from the rest of the demo.
 
 - **`hue_gmm.py`** — the GMM data distribution and hue/x/RGB conversions.
 - **`original_distribution.py`** — just `p(x0)` on its own, labeled and
-  with the hue strip, with none of `step0_forward_backward.py`'s other
+  with the hue strip, with none of `step0_backward.py`'s other
   panels.
 - **`ddpm_step.py`** — closed-form DDPM math: forward step, marginal
   `q(x_t)` for arbitrary `alpha_bar_t` (constant or scheduled beta),
@@ -40,7 +40,7 @@ Simplifying to two modes removes that confound from the rest of the demo.
   `exact_conditional_mean_adjacent` generalize the same math to *adjacent*
   intermediate steps (x_t vs. x_{t+1}), not just x0 vs. x_t, by treating
   x_t's own marginal as the "prior" (see `learned_curve_on_joint_adjacent.py`).
-- **`step0_forward_backward.py`** — 4-panel figure: `p(x0)`, `q(x1)` after
+- **`step0_backward.py`** — 4-panel figure: `p(x0)`, `q(x1)` after
   one forward step, the joint distribution `p(x0,x1)` with example `x1`
   points marked, and the exact reverse posterior for those same points
   (showing genuine bimodality at ambiguous points) — making visible that
@@ -55,7 +55,7 @@ Simplifying to two modes removes that confound from the rest of the demo.
   each other and toward p(x0) itself -- the beta1->1 limit from
   `beta1_sweep.py`, shown directly instead of just quantitatively.
 - **`step0_x1_given_x0.py`** — same top two panels as
-  `step0_forward_backward.py`, but the bottom panels are mirrored: the
+  `step0_backward.py`, but the bottom panels are mirrored: the
   joint distribution `p(x0,x1)` is sliced *vertically* (by x0 instead of
   x1), and panel 4 plots that same vertical slice directly as a curve over
   x1, `q(x0=u, x1) = p(x0=u) * q(x1|x0=u)` — the raw joint density along
@@ -198,7 +198,7 @@ Simplifying to two modes removes that confound from the rest of the demo.
 (if stale) and then builds `reverse_evolution.mp4` and ten figures:
 `original_distribution`, `learned_curve_on_joint`,
 `learned_curve_on_joint_adjacent`, `multistep_from_checkpoint`,
-`step0_forward_backward`, `step0_forward_backward_beta0.3`,
+`step0_backward`, `step0_forward_backward_beta0.3`,
 `step0_x1_given_x0`, `trajectory_image`, `single_trajectory_landscape`,
 `sample_grid`. File-based prerequisites, so it skips anything already up to
 date. `make clean` removes `output/` and the checkpoint.
@@ -235,7 +235,7 @@ Leaked mass shows up mostly in green, not spread evenly.
    encodes a mode's identity near gaps; yellow gets this pressure from two
    directions at once.
 3. **Compounding of small per-step biases over 100 sequential steps.** A
-   single-shot exact posterior sample (as in `step0_forward_backward.py`'s
+   single-shot exact posterior sample (as in `step0_backward.py`'s
    joint-distribution panel) reproduces every mode's weight exactly, by a
    marginalization identity, regardless of how small the mode is. Ancestral
    sampling chains 100 imperfect steps instead, so small directional biases
@@ -279,7 +279,7 @@ Leaked mass shows up mostly in green, not spread evenly.
    is approximately Gaussian" assumption is only justified when beta_t is
    small *relative to local mode spacing and weight*, not small in an
    absolute sense (`beta1_sweep.py` demonstrates this quantitatively; see
-   `step0_forward_backward.py`'s panel 3 for a direct example -- the same
+   `step0_backward.py`'s panel 3 for a direct example -- the same
    beta1 gives unimodal posteriors at the three bump centers but bimodal
    posteriors at the two gaps between them). Yellow's "safe" threshold is
    stricter than red's or green's (flanked on both sides, minority weight),

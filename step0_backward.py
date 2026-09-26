@@ -1,7 +1,7 @@
 """Demo: one forward diffusion step on a 1D hue distribution, and why it can
 be reversed exactly when the data distribution is known.
 
-Produces output/step0_forward_backward.png with four panels:
+Produces output/step0_backward.png with four panels:
   1. p(x0)             -- the true hue distribution (red / green bumps)
   2. q(x1)             -- after one forward noising step
   3. p(x0, x1)         -- their joint distribution: a horizontal slice at
@@ -124,8 +124,10 @@ def main(beta1=BETA1, out_path=None):
     fig.tight_layout(rect=[0, 0, 1, 0.96])
 
     if out_path is None:
-        suffix = "" if beta1 == BETA1 else f"_beta{beta1:g}"
-        out_path = os.path.join(OUT_DIR, f"step0_forward_backward{suffix}.png")
+        if beta1 == BETA1:
+            out_path = os.path.join(OUT_DIR, "step0_backward.png")
+        else:
+            out_path = os.path.join(OUT_DIR, f"step0_forward_backward_beta{beta1:g}.png")
     fig.savefig(out_path, dpi=150)
     print(f"saved {out_path}")
 

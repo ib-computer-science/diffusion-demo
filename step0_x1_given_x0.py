@@ -1,4 +1,4 @@
-"""Companion to step0_forward_backward.py: same top two panels (p(x0),
+"""Companion to step0_backward.py: same top two panels (p(x0),
 q(x1)), but the bottom panels now describe x1 directly in terms of x0
 instead of inverting via Bayes' rule.
 
@@ -10,10 +10,10 @@ proper conditional density in x1. Dividing panel 4's curves by p(x0=u)
 would recover the forward conditional q(x1 | x0=u) (still a single
 Gaussian for every choice of u, unlike the reverse posterior's genuine
 bimodality at ambiguous points -- mirroring how a horizontal slice in
-step0_forward_backward.py's panel 3 becomes its reverse posterior panel 4
+step0_backward.py's panel 3 becomes its reverse posterior panel 4
 once renormalized).
 
-main() takes beta1 as a parameter (default matches step0_forward_backward.py)
+main() takes beta1 as a parameter (default matches step0_backward.py)
 so the same figure can be regenerated at other noise levels.
 """
 
