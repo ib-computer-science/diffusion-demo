@@ -1,49 +1,52 @@
-"""Interactive viewer: press Enter to draw a new sample from the true hue
-distribution p(x0) and see it displayed as a colored square.
+"""Draws a batch of samples from the true hue distribution p(x0) and lays
+them out as a grid of colored cells in a single saved image.
 
 A direct, hands-on way to *feel* the distribution rather than just look at
-its density curve: run it for a couple dozen presses and notice red and
-green come up about equally often while yellow is much rarer (weights
-3/7, 1/7, 3/7) -- the same GMM used throughout the rest of this demo
+its density curve: red shows up about twice as often as green (weights
+2/3, 1/3) -- the same GMM used throughout the rest of this demo
 (hue_gmm.py).
 """
 
-import numpy as np
+import os
+
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.patches import Rectangle
 
-from hue_gmm import sample_gmm, x_to_hue, x_to_rgb
+from hue_gmm import sample_gmm, x_to_rgb
 
-rng = np.random.default_rng()
-
-
-def new_sample():
-    x = float(sample_gmm(1, rng)[0])
-    return x, x_to_hue(x), x_to_rgb(x)
+OUT_DIR = "output"
+GRID_WIDTH = 5
+GRID_HEIGHT = 10
 
 
 def main():
-    fig, ax = plt.subplots(figsize=(4.5, 4.5))
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    os.makedirs(OUT_DIR, exist_ok=True)
+    rng = np.random.default_rng()
+    n = GRID_WIDTH * GRID_HEIGHT
+    xs = sample_gmm(n, rng)
+
+    fig, ax = plt.subplots(figsize=(GRID_WIDTH, GRID_HEIGHT))
+    ax.set_xlim(0, GRID_WIDTH)
+    ax.set_ylim(0, GRID_HEIGHT)
     ax.set_xticks([])
     ax.set_yticks([])
+    ax.set_aspect("equal")
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    _, _, rgb = new_sample()
-    square = Rectangle((0.1, 0.1), 0.8, 0.8, facecolor=rgb, edgecolor="black", linewidth=1.5)
-    ax.add_patch(square)
+    for i, x in enumerate(xs):
+        col, row = i % GRID_WIDTH, i // GRID_WIDTH
+        ax.add_patch(Rectangle((col, row), 1, 1, facecolor=x_to_rgb(float(x)),
+                                edgecolor="black", linewidth=0.5))
 
-    def on_key(event):
-        if event.key == "enter":
-            _, _, rgb = new_sample()
-            square.set_facecolor(rgb)
-            fig.canvas.draw_idle()
-
-    fig.canvas.mpl_connect("key_press_event", on_key)
-    fig.suptitle("Press Enter for a new sample from p(x0)  --  close window to quit", fontsize=9)
-    plt.show()
+    fig.suptitle(f"{n} samples from p(x0)", fontsize=10)
+    fig.tight_layout()
+    out_path = os.path.join(OUT_DIR, "sample_grid.png")
+    fig.savefig(out_path, dpi=150)
+    print(f"saved {out_path}")
 
 
 if __name__ == "__main__":

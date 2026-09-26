@@ -135,9 +135,10 @@ Simplifying to two modes removes that confound from the rest of the demo.
   (`train_multistep_improved.py`, `train_multistep_reweighted.py`, both of
   which plot the loss curve) deliberately keep training their own model
   fresh rather than loading this checkpoint.
-- **`sample_viewer.py`** — press Enter to draw a fresh sample from `p(x0)`
-  and see it as a colored square; a hands-on way to feel the true weights
-  (red twice as common as green) instead of just reading a density curve.
+- **`sample_viewer.py`** — draws a 5x10 grid (50) of independent samples
+  from `p(x0)` and saves them as one image of colored cells
+  (`output/sample_grid.png`); a hands-on way to feel the true weights (red
+  twice as common as green) instead of just reading a density curve.
 - **`reverse_process_viewer.py`** — press Enter to draw a fresh
   `x_T ~ N(0,1)`, run it through the full trained reverse process, and see
   the noise input and denoised result side by side. Loads the saved
@@ -188,13 +189,13 @@ Simplifying to two modes removes that confound from the rest of the demo.
 ## Running everything
 
 `Makefile`'s default target (plain `make`) trains the canonical checkpoint
-(if stale) and then builds `reverse_evolution.mp4` and nine figures:
+(if stale) and then builds `reverse_evolution.mp4` and ten figures:
 `original_distribution`, `learned_curve_on_joint`,
 `learned_curve_on_joint_adjacent`, `multistep_from_checkpoint`,
 `step0_forward_backward`, `step0_forward_backward_beta0.3`,
-`step0_x1_given_x0`, `trajectory_image`, `single_trajectory_landscape`.
-File-based prerequisites, so it skips anything already up to date. `make clean`
-removes `output/` and the checkpoint.
+`step0_x1_given_x0`, `trajectory_image`, `single_trajectory_landscape`,
+`sample_grid`. File-based prerequisites, so it skips anything already up to
+date. `make clean` removes `output/` and the checkpoint.
 
 ## Closed investigation: the yellow bump
 

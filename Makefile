@@ -15,14 +15,15 @@ all: check-deps train \
      $(OUT)/step0_forward_backward_beta0.3.png \
      $(OUT)/step0_x1_given_x0.png \
      $(OUT)/trajectory_image.png \
-     $(OUT)/single_trajectory_landscape.png
+     $(OUT)/single_trajectory_landscape.png \
+     $(OUT)/sample_grid.png
 
 train: $(CHECKPOINT)
 
 check-deps:
 	@$(PYTHON) -c "import tkinter" >/dev/null 2>&1 || { \
 		echo "ERROR: tkinter is not available for $(PYTHON)."; \
-		echo "  Required by the interactive viewers (sample_viewer.py, reverse_process_viewer.py) to open a display window."; \
+		echo "  Required by the interactive viewer reverse_process_viewer.py to open a display window."; \
 		echo "  Install it via your OS package manager (e.g. 'sudo dnf install python3-tkinter' on Fedora), then recreate the venv."; \
 		exit 1; \
 	}
@@ -61,6 +62,9 @@ $(OUT)/trajectory_image.png: trajectory_image.py $(CHECKPOINT) multistep_model.p
 
 $(OUT)/single_trajectory_landscape.png: single_trajectory_landscape.py $(CHECKPOINT) ddpm_step.py hue_gmm.py multistep_model.py schedule.py
 	$(PYTHON) single_trajectory_landscape.py
+
+$(OUT)/sample_grid.png: sample_viewer.py hue_gmm.py
+	$(PYTHON) sample_viewer.py
 
 clean:
 	rm -rf $(OUT) $(CHECKPOINT)

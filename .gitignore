@@ -12,4 +12,5 @@ output/*
 !output/step0_forward_backward_beta0.3.png
 !output/learned_curve_on_joint.png
 !output/learned_curve_on_joint_adjacent.png
+!output/sample_grid.png
 checkpoints/
