@@ -55,19 +55,19 @@ def main():
         results.append((seed, gen_frac))
         print(f"seed={seed} ({elapsed:.0f}s, final loss={np.mean(losses[-200:]):.4f}) gen={ {k: round(v,4) for k,v in gen_frac.items()} }")
 
-    print(f"\n{'seed':6s} {'red':>8s} {'yellow':>8s} {'green':>8s}")
-    print(f"{'true':6s} {true_frac['red']:8.4f} {true_frac['yellow']:8.4f} {true_frac['green']:8.4f}")
+    print(f"\n{'seed':6s} {'red':>8s} {'green':>8s}")
+    print(f"{'true':6s} {true_frac['red']:8.4f} {true_frac['green']:8.4f}")
     for seed, g_f in results:
-        print(f"{seed:<6d} {g_f['red']:8.4f} {g_f['yellow']:8.4f} {g_f['green']:8.4f}")
+        print(f"{seed:<6d} {g_f['red']:8.4f} {g_f['green']:8.4f}")
 
     fig, ax = plt.subplots(figsize=(8, 5.5))
     width = 0.25
     x = np.arange(len(SEEDS))
-    colors = {"red": "tab:red", "yellow": "goldenrod", "green": "tab:green"}
-    for i, region in enumerate(["red", "yellow", "green"]):
+    colors = {"red": "tab:red", "green": "tab:green"}
+    for i, region in enumerate(["red", "green"]):
         gens = [g_f[region] for _, g_f in results]
-        ax.bar(x + (i - 1) * width, gens, width, label=f"{region} (generated)", color=colors[region], alpha=0.75)
-        ax.hlines(true_frac[region], x[0] + (i - 1) * width - width / 2, x[-1] + (i - 1) * width + width / 2,
+        ax.bar(x + (i - 0.5) * width, gens, width, label=f"{region} (generated)", color=colors[region], alpha=0.75)
+        ax.hlines(true_frac[region], x[0] + (i - 0.5) * width - width / 2, x[-1] + (i - 0.5) * width + width / 2,
                   colors=colors[region], linestyles="dashed", linewidth=1.5)
     ax.set_xticks(x)
     ax.set_xticklabels([f"seed {s}" for s in SEEDS])

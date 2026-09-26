@@ -7,7 +7,7 @@ Two changes relative to train_multistep.py:
      single raw scalar t/T, giving the network more expressive power to
      represent very different behavior across the schedule (sharp local
      corrections near t=1 vs. the near-constant "return to the prior mean"
-     near t=T -- see learned_curve_on_joint_multistep.png).
+     near t=T).
   2. More hidden units and more training iterations than the baseline
      (train_multistep.py used hidden=128, N_ITERS=20000; doubling iterations
      there alone previously shrank yellow's shortfall from ~44% low to
