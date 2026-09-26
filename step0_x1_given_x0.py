@@ -77,7 +77,7 @@ def main(beta1=BETA1, out_path=None):
     ax.legend(fontsize=8, loc="upper right")
 
     # --- example x0 values used by panels 3 and 4 ---
-    example_us = [-1 / 3, 1 / 3]
+    example_us = [-1 / 3, 0.25]
     example_colors = [x_to_rgb(u) for u in example_us]
 
     # --- panel 3: joint distribution p(x0, x1), sliced vertically (by x0) ---
